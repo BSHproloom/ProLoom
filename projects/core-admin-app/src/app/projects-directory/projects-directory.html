@@ -1,0 +1,85 @@
+<div class="directory-container">
+  <div class="header">
+    <h2>Projects Directory</h2>
+  </div>
+
+  <div class="mat-elevation-z2 table-wrapper">
+    <table mat-table [dataSource]="dataSource" matSort>
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+        <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="client_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Client </th>
+        <td mat-cell *matCellDef="let element"> {{element.client_name}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="project_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Project </th>
+        <td mat-cell *matCellDef="let element"> {{element.project_name}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="am">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Account Manager </th>
+        <td mat-cell *matCellDef="let element"> {{element.am}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="overall_status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="element.overall_status.toLowerCase()">
+            {{element.overall_status}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="aggregatedStatus">
+        <th mat-header-cell *matHeaderCellDef> Carpet Status </th>
+        <td mat-cell *matCellDef="let element" class="carpet-status"> {{element.aggregatedStatus}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{project: element}">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          class="project-row"
+          (contextmenu)="onContextMenu($event, row)">
+      </tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of projects"></mat-paginator>
+  </div>
+</div>
+
+<div style="visibility: hidden; position: fixed"
+     [style.left]="contextMenuPosition.x"
+     [style.top]="contextMenuPosition.y"
+     [matMenuTriggerFor]="contextMenu">
+</div>
+
+<mat-menu #contextMenu="matMenu">
+  <ng-template matMenuContent let-project="project">
+    <button mat-menu-item (click)="copyToWhatsApp(project)">
+      <mat-icon>content_copy</mat-icon>
+      <span>Copy Data to WhatsApp</span>
+    </button>
+  </ng-template>
+</mat-menu>
+
+<mat-menu #menu="matMenu">
+  <ng-template matMenuContent let-project="project">
+    <button mat-menu-item (click)="copyToWhatsApp(project)">
+      <mat-icon>content_copy</mat-icon>
+      <span>Copy to WhatsApp</span>
+    </button>
+  </ng-template>
+</mat-menu>

@@ -1,0 +1,47 @@
+<div class="dashboard-container">
+  <h2>SLA Dashboard</h2>
+
+  <div class="kpi-grid">
+    <mat-card *ngFor="let kpi of kpis" class="kpi-card" [class.alert-card]="kpi.isAlert">
+      <mat-card-header>
+        <div mat-card-avatar class="kpi-icon" [class.alert-icon]="kpi.isAlert">
+          <mat-icon>{{kpi.icon}}</mat-icon>
+        </div>
+        <mat-card-title>{{kpi.title}}</mat-card-title>
+        <mat-card-subtitle>{{kpi.alertMessage}}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="kpi-value">{{kpi.value}}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <h3 class="chart-title">Loom Utilization (Next 30 Days)</h3>
+  <div class="mat-elevation-z1 chart-card">
+    <div class="loom-chart">
+      
+      <div class="chart-header">
+        <div class="loom-label-header">Loom</div>
+        <div class="days-header">
+          <div *ngFor="let d of dates" class="day-label">{{d}}</div>
+        </div>
+      </div>
+
+      <div class="chart-body">
+        <div class="loom-row" *ngFor="let loom of loomSchedules">
+          <div class="loom-label">Loom {{loom.loomId}}</div>
+          <div class="days-row">
+            <div *ngFor="let day of loom.days" class="day-block" [ngClass]="day.status" [title]="'Day ' + day.date + ': ' + day.status"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="chart-legend">
+      <div class="legend-item"><div class="day-block free"></div> Free</div>
+      <div class="legend-item"><div class="day-block busy"></div> Scheduled</div>
+      <div class="legend-item"><div class="day-block maintenance"></div> Maintenance</div>
+    </div>
+  </div>
+</div>

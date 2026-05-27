@@ -1,0 +1,87 @@
+<div class="form-container">
+  <h2>Create New Project</h2>
+  
+  <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" class="project-form">
+    
+    <div class="row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Client Name</mat-label>
+        <input type="text" matInput formControlName="client_name" [matAutocomplete]="auto" (input)="filterClients($event)">
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngFor="let client of filteredClients" [value]="client">
+            {{client}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+  
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Project Name</mat-label>
+        <input matInput formControlName="project_name">
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Width (m)</mat-label>
+        <input matInput type="number" formControlName="width">
+      </mat-form-field>
+  
+      <mat-form-field appearance="outline">
+        <mat-label>Height (m)</mat-label>
+        <input matInput type="number" formControlName="height">
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Carpet Quality</mat-label>
+        <mat-select formControlName="carpet_quality">
+          <mat-option *ngFor="let q of qualities" [value]="q">{{ q }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <mat-form-field appearance="outline">
+        <mat-label>No. of Rugs</mat-label>
+        <input matInput type="number" formControlName="no_of_rugs">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Type of Carpet</mat-label>
+        <mat-select formControlName="type_of_carpet">
+          <mat-option *ngFor="let t of types" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Timeline (Weeks)</mat-label>
+        <input matInput type="number" formControlName="timeline_weeks">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Client Commitment Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="client_commitment_date">
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Client Expectation</mat-label>
+      <textarea matInput formControlName="client_expectation" rows="3"></textarea>
+    </mat-form-field>
+
+    <div class="row align-center">
+      <mat-checkbox formControlName="skip_artwork" color="primary">
+        Skip directly to sample without artwork
+      </mat-checkbox>
+    </div>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!projectForm.valid">
+        Create Project
+      </button>
+    </div>
+  </form>
+</div>

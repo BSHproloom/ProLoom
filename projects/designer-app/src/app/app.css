@@ -1,0 +1,55 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+  position: relative;
+  background-color: #673ab7; /* Different color for designer app */
+  color: white;
+}
+.title {
+  font-weight: 500;
+  margin-right: 16px;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+.role-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+.sidenav-container {
+  height: calc(100vh - 64px);
+  background: #f4f6f8;
+}
+.sidenav {
+  width: 250px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+.content {
+  padding: 24px;
+  overflow: auto;
+}
+.active-link {
+  background: rgba(103, 58, 183, 0.08);
+  color: #673ab7;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .content {
+    padding: 12px;
+  }
+  .sidenav {
+    width: 200px;
+  }
+}

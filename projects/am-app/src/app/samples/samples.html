@@ -1,0 +1,46 @@
+<div class="samples-container">
+  <div class="header-row">
+    <h2>Samples Tracker</h2>
+  </div>
+
+  <div class="mat-elevation-z2">
+    <table mat-table [dataSource]="dataSource">
+      
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef> Sample ID </th>
+        <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="carpet_fk">
+        <th mat-header-cell *matHeaderCellDef> Carpet SKU </th>
+        <td mat-cell *matCellDef="let element"> {{element.carpet_fk}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="sample_type">
+        <th mat-header-cell *matHeaderCellDef> Type </th>
+        <td mat-cell *matCellDef="let element"> {{element.sample_type}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Status </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="element.status.toLowerCase().replace(' ', '-')">
+            {{element.status}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button color="primary" (click)="generatePDF(element)" title="Generate Label PDF">
+            <mat-icon>picture_as_pdf</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

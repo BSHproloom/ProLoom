@@ -1,0 +1,39 @@
+<mat-toolbar color="primary" class="topbar">
+  <button mat-icon-button (click)="toggleSidebar()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="title hide-on-mobile">{{ title() }}</span>
+  <span class="spacer"></span>
+  <button mat-button class="search-btn">
+    <mat-icon>search</mat-icon> <span class="hide-on-mobile">Search (Ctrl+K)</span>
+  </button>
+  <button mat-raised-button color="accent" class="new-project-btn" routerLink="/new-project">
+    <mat-icon>add</mat-icon> <span class="hide-on-mobile">New Project</span>
+  </button>
+  <div class="role-indicator hide-on-mobile">
+    <mat-icon>admin_panel_settings</mat-icon> Admin
+  </div>
+</mat-toolbar>
+
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav [opened]="isSidebarOpen" mode="side" class="sidenav">
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="/projects" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>folder</mat-icon>
+        <span matListItemTitle>Projects Directory</span>
+      </a>
+      <a mat-list-item routerLink="/design-queue" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Design Queue</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

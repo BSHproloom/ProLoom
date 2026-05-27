@@ -1,0 +1,92 @@
+<div class="am-container">
+  <div class="greeting-header">
+    <div class="avatar">
+      {{currentAm.charAt(0)}}
+    </div>
+    <div class="greeting-text">
+      <h2>Hi, {{currentAm}}!</h2>
+      <p>Here's an overview of your projects.</p>
+    </div>
+  </div>
+
+  <mat-accordion class="projects-accordion" multi>
+    <mat-expansion-panel *ngFor="let project of projects">
+      
+      <!-- Responsive Header (Only Project title & status) -->
+      <mat-expansion-panel-header class="responsive-header">
+        <mat-panel-title>
+          <span class="project-name">{{project.project_name}}</span>
+        </mat-panel-title>
+        <mat-panel-description>
+          <span class="status-badge" [ngClass]="project.overall_status.toLowerCase().replace(' ', '-')">
+            {{project.overall_status}}
+          </span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <!-- Panel Details -->
+      <div class="project-details">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Client Name</span>
+            <span class="detail-value">{{project.client_name}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Sales Order No</span>
+            <span class="detail-value">{{project.sales_order}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Lead Time</span>
+            <span class="detail-value">{{project.timeline_weeks}} weeks</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Client Commitment</span>
+            <span class="detail-value">{{project.client_commitment_date | date:'mediumDate'}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Yarn Reservation</span>
+            <span class="detail-value status-yarn">Reserved</span>
+          </div>
+        </div>
+      </div>
+
+      <h4>Carpets Breakdown</h4>
+      <div class="mat-elevation-z1 table-container">
+        <table mat-table [dataSource]="project.carpets">
+          
+          <ng-container matColumnDef="name_sku">
+            <th mat-header-cell *matHeaderCellDef> Carpet / SKU </th>
+            <td mat-cell *matCellDef="let carpet"> 
+              <strong>{{carpet.composite_item_name}}</strong>
+              <div style="font-size: 11px; color: #666; margin-top: 2px;">{{carpet.id}}</div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let carpet">
+              <span class="status-badge carpet-status" [ngClass]="carpet.status.toLowerCase().replace(' ', '-')">
+                {{carpet.status}}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="readiness_date">
+            <th mat-header-cell *matHeaderCellDef> Ready Date </th>
+            <td mat-cell *matCellDef="let carpet">
+              {{ carpet.designer_readiness_date ? (carpet.designer_readiness_date | date:'MMM d, y') : 'N/A' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="carpetColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: carpetColumns;"></tr>
+        </table>
+        
+        <div class="empty-state" *ngIf="project.carpets.length === 0">
+          No carpets added to this project yet.
+        </div>
+      </div>
+      
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

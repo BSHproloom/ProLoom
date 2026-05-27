@@ -1,0 +1,22 @@
+<div class="app-container">
+  
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <nav class="bottom-nav mat-elevation-z4">
+    <a routerLink="/am-projects" routerLinkActive="active-nav">
+      <mat-icon>insert_chart_outlined</mat-icon>
+      <span>Projects Status</span>
+    </a>
+    <a routerLink="/production" routerLinkActive="active-nav">
+      <mat-icon>precision_manufacturing</mat-icon>
+      <span>Production</span>
+    </a>
+    <a routerLink="/samples" routerLinkActive="active-nav">
+      <mat-icon>science</mat-icon>
+      <span>Control Samples</span>
+    </a>
+  </nav>
+
+</div>

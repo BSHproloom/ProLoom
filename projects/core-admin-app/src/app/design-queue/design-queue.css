@@ -1,0 +1,34 @@
+.queue-container {
+  padding: 16px;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+table {
+  width: 100%;
+}
+
+tr.mat-row {
+  cursor: pointer;
+}
+
+tr.mat-row:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}
