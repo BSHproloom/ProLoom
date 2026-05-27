@@ -17,9 +17,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build AM App
-        run: npx ng build am-app --base-href /ProLoom/
+        run: npx ng build am-app --base-href /ProLoom/am-app/
+      - name: Build Admin App
+        run: npx ng build core-admin-app --base-href /ProLoom/core-admin-app/
+      - name: Build Designer App
+        run: npx ng build designer-app --base-href /ProLoom/designer-app/
+      
+      - name: Prepare Deployment Directory
+        run: |
+          mkdir -p deploy
+          cp -r dist/am-app/browser deploy/am-app
+          cp -r dist/core-admin-app/browser deploy/core-admin-app
+          cp -r dist/designer-app/browser deploy/designer-app
+          # Create a simple root index.html to navigate to the apps
+          echo '<!DOCTYPE html><html><head><title>ProLoom Apps</title></head><body><h1>ProLoom Applications</h1><ul><li><a href="./am-app/">Account Manager App</a></li><li><a href="./core-admin-app/">Admin App</a></li><li><a href="./designer-app/">Designer App</a></li></ul></body></html>' > deploy/index.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/am-app/browser
+          publish_dir: ./deploy
