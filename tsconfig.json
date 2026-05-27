@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "paths": {
-      "shared-core": ["./dist/shared-core"]
+      "shared-core": ["./projects/shared-core/src/public-api.ts"]
     },
     "importHelpers": true,
     "target": "ES2022",
@@ -49,6 +49,12 @@
     },
     {
       "path": "./projects/shared-core/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/production-app/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/production-app/tsconfig.spec.json"
     }
   ]
 }

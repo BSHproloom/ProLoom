@@ -4,6 +4,23 @@
   margin: 0 auto;
 }
 
+.am-selector {
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: bold;
+  color: #00796b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed #00796b;
+  cursor: pointer;
+  outline: none;
+  padding: 0 4px;
+}
+
+.am-selector:focus {
+  border-bottom-style: solid;
+}
+
 .greeting-header {
   display: flex;
   align-items: center;

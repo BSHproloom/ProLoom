@@ -1,5 +1,23 @@
 {
   "projects": {
-    "default": "proloom-2026-3bb5a"
+    "default": "proloom-bsh"
+  },
+  "targets": {
+    "proloom-bsh": {
+      "hosting": {
+        "admin": [
+          "proloom-admin"
+        ],
+        "am": [
+          "proloom-am"
+        ],
+        "designer": [
+          "proloom-designer"
+        ],
+        "production": [
+          "proloom-production"
+        ]
+      }
+    }
   }
 }

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ProductionApp</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="manifest.webmanifest">
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+      }
+      .splash-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        background-color: #ffffff;
+        font-family: 'Roboto', sans-serif;
+      }
+      .splash-screen img {
+        width: 250px;
+        max-width: 80%;
+        margin-bottom: 24px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+      .splash-screen p {
+        color: #555;
+        font-size: 14px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-weight: 500;
+        text-align: center;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    </style>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  </head>
+  <body>
+    <app-root>
+      <div class="splash-screen">
+        <img src="logo.png" alt="BSH Walls & Floors Logo">
+        <p>Powered by Custom Carpet Department</p>
+      </div>
+    </app-root>
+  </body>
+</html>

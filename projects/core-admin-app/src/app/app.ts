@@ -5,6 +5,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
+import { NotificationBellComponent } from 'shared-core';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +18,8 @@ import { MatListModule } from '@angular/material/list';
     MatToolbarModule,
     MatIconModule,
     MatButtonModule,
-    MatListModule
+    MatListModule,
+    NotificationBellComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

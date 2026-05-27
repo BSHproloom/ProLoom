@@ -4,7 +4,11 @@
       {{currentAm.charAt(0)}}
     </div>
     <div class="greeting-text">
-      <h2>Hi, {{currentAm}}!</h2>
+      <h2>Hi, 
+        <select class="am-selector" [(ngModel)]="currentAm" (ngModelChange)="filterProjects()">
+          <option *ngFor="let am of ams" [value]="am">{{am}}</option>
+        </select>!
+      </h2>
       <p>Here's an overview of your projects.</p>
     </div>
   </div>
@@ -89,4 +93,9 @@
       
     </mat-expansion-panel>
   </mat-accordion>
+
+  <div class="empty-state" *ngIf="projects.length === 0" style="text-align: center; margin-top: 40px;">
+    <h3>No projects assigned to {{currentAm}} yet.</h3>
+    <p style="color: #666;">Projects created in the Admin Dashboard assigned to this AM will appear here.</p>
+  </div>
 </div>

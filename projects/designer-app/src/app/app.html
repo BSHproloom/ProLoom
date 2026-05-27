@@ -4,6 +4,20 @@
   </button>
   <span class="title hide-on-mobile">{{ title() }}</span>
   <span class="spacer"></span>
+  
+  <mat-form-field appearance="outline" class="identity-switcher hide-on-mobile" style="margin-top: 16px; margin-right: 16px;">
+    <mat-label>View As</mat-label>
+    <mat-select [(ngModel)]="currentDesigner" (selectionChange)="onDesignerChange()">
+      <mat-option *ngFor="let d of designers" [value]="d">{{ d.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <lib-notification-bell 
+    *ngIf="currentDesigner" 
+    [recipientEmail]="currentDesigner?.email" 
+    [recipientRole]="'Designer'">
+  </lib-notification-bell>
+
   <button mat-button class="search-btn">
     <mat-icon>search</mat-icon> <span class="hide-on-mobile">Search (Ctrl+K)</span>
   </button>

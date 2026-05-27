@@ -10,6 +10,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CommonModule } from '@angular/common';
 
+import { ProjectService, UserService } from 'shared-core';
+
 @Component({
   selector: 'app-new-project-form',
   standalone: true,
@@ -30,6 +32,8 @@ import { CommonModule } from '@angular/common';
 })
 export class NewProjectForm {
   private fb = inject(FormBuilder);
+  private projectService = inject(ProjectService);
+  private userService = inject(UserService);
 
   projectForm: FormGroup = this.fb.group({
     client_name: ['', Validators.required],
@@ -41,6 +45,7 @@ export class NewProjectForm {
     type_of_carpet: ['', Validators.required],
     timeline_weeks: [null, Validators.required],
     client_commitment_date: [null, Validators.required],
+    am: ['', Validators.required],
     client_expectation: [''],
     skip_artwork: [false]
   });
@@ -48,20 +53,41 @@ export class NewProjectForm {
   clients = ['Marriott', 'Hilton', 'Ritz-Carlton', 'Hyatt']; // Mock data
   filteredClients = this.clients;
 
+  ams: string[] = []; 
+
   qualities = ['ht-450', 'ht-550', 'ht-650', 'ht-750', 'ht-850'];
   types = ['WALL TO WALL', 'RUG', 'INSERT'];
+
+  constructor() {
+    this.userService.getUsers().subscribe(users => {
+      this.ams = users.filter(u => u.role === 'AM').map(u => u.name);
+    });
+  }
 
   filterClients(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
     this.filteredClients = this.clients.filter(c => c.toLowerCase().includes(filterValue));
   }
 
-  onSubmit() {
+  async onSubmit(formDirective: any) {
     if (this.projectForm.valid) {
-      console.log('Project Data:', this.projectForm.value);
-      // Here we would call the service to save to Firestore
-      alert('Project Created!');
-      this.projectForm.reset();
+      try {
+        // Await the save to Firestore
+        await this.projectService.addProject(this.projectForm.value);
+        
+        alert('Project Created!');
+        
+        // Only reset if successful
+        formDirective.resetForm({
+          no_of_rugs: 1,
+          skip_artwork: false,
+          am: ''
+        });
+      } catch (e) {
+        // Error already handled by alert in service
+      }
+    } else {
+      this.projectForm.markAllAsTouched();
     }
   }
 }

@@ -9,12 +9,20 @@
       </mat-card-header>
 
       <mat-card-content>
-        <div class="status-row">
-          <mat-chip [class.revision]="task.status === 'Revision Requested'">{{task.status}}</mat-chip>
+        <div class="status-row" style="margin-bottom: 16px;">
+          <mat-chip [class.revision]="task.status === 'Revision Needed'">{{task.status}}</mat-chip>
           <div class="timer-display" [class.running]="task.is_working">
             <mat-icon>{{task.is_working ? 'timer' : 'timer_off'}}</mat-icon>
             {{task.timerDisplay}}
           </div>
+        </div>
+        
+        <div *ngIf="!task.designer_readiness_date && task.status === 'Assigned'" style="margin-top: 8px;">
+          <small style="display:block; margin-bottom: 4px; color:#666;">Estimated Finishing Date:</small>
+          <input type="date" [(ngModel)]="task.designer_readiness_date" (change)="saveDate(task)" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div *ngIf="task.designer_readiness_date" style="margin-top: 8px; font-size: 14px;">
+          <strong>Est. Finishing:</strong> {{ formatDate(task.designer_readiness_date) }}
         </div>
       </mat-card-content>
 

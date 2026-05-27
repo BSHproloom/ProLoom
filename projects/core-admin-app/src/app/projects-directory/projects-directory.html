@@ -77,6 +77,10 @@
 
 <mat-menu #menu="matMenu">
   <ng-template matMenuContent let-project="project">
+    <button mat-menu-item [routerLink]="['/project', project.id]">
+      <mat-icon>visibility</mat-icon>
+      <span>View & Assign Carpets</span>
+    </button>
     <button mat-menu-item (click)="copyToWhatsApp(project)">
       <mat-icon>content_copy</mat-icon>
       <span>Copy to WhatsApp</span>

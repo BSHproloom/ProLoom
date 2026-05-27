@@ -10,6 +10,7 @@
   <button mat-raised-button color="accent" class="new-project-btn" routerLink="/new-project">
     <mat-icon>add</mat-icon> <span class="hide-on-mobile">New Project</span>
   </button>
+  <lib-notification-bell [recipientRole]="'Admin'"></lib-notification-bell>
   <div class="role-indicator hide-on-mobile">
     <mat-icon>admin_panel_settings</mat-icon> Admin
   </div>
@@ -29,6 +30,10 @@
       <a mat-list-item routerLink="/design-queue" routerLinkActive="active-link">
         <mat-icon matListItemIcon>assignment</mat-icon>
         <span matListItemTitle>Design Queue</span>
+      </a>
+      <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>settings</mat-icon>
+        <span matListItemTitle>Settings</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
