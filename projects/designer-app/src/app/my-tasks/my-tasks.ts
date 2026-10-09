@@ -25,7 +25,7 @@ interface TaskViewModel extends Carpet {
 @Component({
   selector: 'app-my-tasks',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatChipsModule, FormsModule, MatDialogModule, MatTooltipModule, MatMenuModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatChipsModule, FormsModule, MatDialogModule, MatTooltipModule, MatMenuModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule, MatCheckboxModule],
   templateUrl: './my-tasks.html',
   styleUrl: './my-tasks.css',
 })

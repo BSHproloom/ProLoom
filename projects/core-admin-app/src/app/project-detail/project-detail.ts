@@ -18,6 +18,45 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Inject } from '@angular/core';
 
 @Component({
+  selector: 'app-email-draft-dialog',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, FormsModule],
+  template: `
+    <h2 mat-dialog-title>Review Email Draft</h2>
+    <mat-dialog-content>
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px; min-width: 500px;">
+        <mat-form-field appearance="outline">
+          <mat-label>To</mat-label>
+          <input matInput [(ngModel)]="data.to">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>CC</mat-label>
+          <input matInput [(ngModel)]="data.cc">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Subject</mat-label>
+          <input matInput [(ngModel)]="data.subject">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Message Body</mat-label>
+          <textarea matInput rows="10" [(ngModel)]="data.body"></textarea>
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-flat-button color="primary" [mat-dialog-close]="data">Send Email</button>
+    </mat-dialog-actions>
+  `
+})
+export class EmailDraftDialog {
+  constructor(
+    public dialogRef: MatDialogRef<EmailDraftDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: { to: string, cc: string, subject: string, body: string }
+  ) {}
+}
+
+@Component({
   selector: 'app-add-carpet-dialog',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatDialogModule],
@@ -116,7 +155,6 @@ export class AddCarpetDialog {
       this.dialogRef.close(this.form.value);
     }
   }
-}
 }
 
 @Component({
@@ -354,16 +392,12 @@ export class ProjectDetail implements OnInit {
     dialogRef.afterClosed().subscribe(async result => {
       if (result) {
         try {
-          // Generate SKU dynamically based on existing carpet count
           let count = this.carpets.length + 1;
-          // In case there's an existing SKU with this number, we could potentially loop, but for now length+1 works.
           let sku = `${this.projectId}_${String(count).padStart(2, '0')}`;
           
           let folderLink = '';
           let folderPath = '';
           try {
-            // Generate SharePoint folder just like new project creation
-            // We need appSettings for the sharepointSiteUrl
             const { firstValueFrom } = await import('rxjs');
             const settings = await firstValueFrom(this.settingsService.getSettings());
             
@@ -380,8 +414,8 @@ export class ProjectDetail implements OnInit {
           }
 
           const carpetData = {
-            id: sku, // Explicitly set the ID to our SKU
-            composite_item_name: result.name, // Map UI name back to model field
+            id: sku,
+            composite_item_name: result.name,
             carpet_type: result.carpet_type,
             width: result.width || 0,
             height: result.height || 0,
