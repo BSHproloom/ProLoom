@@ -20,10 +20,10 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: npm install --legacy-peer-deps
       
     - name: Run Unit Tests
-      run: npm run test -- --watch=false --browsers=ChromeHeadless
+      run: npm run test -- --watch=false
       
     - name: Build All Projects
       run: npm run build:all
