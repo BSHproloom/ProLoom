@@ -4,11 +4,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { User, UserService } from 'shared-core';
+import { MsalService } from '@azure/msal-angular';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+
 
 @Component({
   selector: 'app-designer-settings',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatListModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatListModule, MatButtonModule],
   template: `
     <div class="settings-container">
       <h2>Designer Settings</h2>
@@ -38,6 +42,23 @@ import { User, UserService } from 'shared-core';
                 <span class="hint">(Please contact your administrator to change your password)</span>
               </div>
             </mat-list-item>
+          
+            <mat-divider></mat-divider>
+            <mat-list-item>
+              <mat-icon matListItemIcon style="color: #0078d4;">mail</mat-icon>
+              <div class="list-item-content" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                  <strong>Microsoft Account:</strong> 
+                  <span *ngIf="msAccount" style="color: green; margin-left: 8px;">Connected ({{msAccount.username}})</span>
+                  <span *ngIf="!msAccount" style="color: #e65100; margin-left: 8px;">Not Connected</span>
+                </div>
+                <div>
+                    <button mat-stroked-button color="primary" *ngIf="!msAccount" (click)="connectMicrosoft()">Connect</button>
+                    <button mat-stroked-button color="warn" *ngIf="msAccount" (click)="disconnectMicrosoft()">Disconnect</button>
+                </div>
+              </div>
+            </mat-list-item>
+
           </mat-list>
         </mat-card-content>
         <mat-card-actions style="padding: 16px;">
@@ -85,10 +106,14 @@ import { User, UserService } from 'shared-core';
   `]
 })
 export class DesignerSettings implements OnInit {
-  designer: User | null = null;
+designer: User | null = null;
   private userService = inject(UserService);
+  private msalService = inject(MsalService);
+  private snackBar = inject(MatSnackBar);
+  msAccount: any = null;
 
   ngOnInit() {
+    this.checkMsAccount();
     const ls = localStorage.getItem('current_designer');
     if (ls) {
       try {
@@ -105,6 +130,31 @@ export class DesignerSettings implements OnInit {
         });
       } catch(e) {}
     }
+  }
+
+  checkMsAccount() {
+    this.msAccount = this.msalService.instance.getAllAccounts()[0] || null;
+  }
+
+  async connectMicrosoft() {
+    try {
+      await this.msalService.instance.loginPopup({
+        scopes: ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All']
+      });
+      this.checkMsAccount();
+      this.snackBar.open('Microsoft Account Connected successfully!', 'Close', { duration: 3000 });
+    } catch (e) {
+      console.error(e);
+      this.snackBar.open('Failed to connect Microsoft Account', 'Close', { duration: 3000 });
+    }
+  }
+
+  async disconnectMicrosoft() {
+    try {
+      await this.msalService.instance.logoutPopup();
+      this.checkMsAccount();
+      this.snackBar.open('Microsoft Account Disconnected', 'Close', { duration: 3000 });
+    } catch(e) {}
   }
 
   logout() {
