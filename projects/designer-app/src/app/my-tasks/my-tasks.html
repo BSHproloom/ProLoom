@@ -33,15 +33,27 @@
   <!-- RIGHT: Task Details -->
   <div class="task-detail-pane">
     <div class="detail-content" *ngIf="selectedProjectGroup">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+        <div>
+          <h2 style="margin: 0; color: #1e293b;">Project: {{selectedProjectGroup.project.project_name || selectedProjectGroup.project.id}}</h2>
+          <mat-checkbox (change)="selectAllTasks($event)">Select All Carpets</mat-checkbox>
+        </div>
+        <button mat-flat-button color="accent" (click)="submitSelectedTasks()">
+          <mat-icon>cloud_upload</mat-icon> Submit Selected
+        </button>
+      </div>
       
       <div *ngFor="let task of selectedProjectGroup.tasks" style="margin-bottom: 24px;">
         <mat-card class="unified-carpet-card" [class.is-working]="task.is_working">
           
           <!-- ROW 1: Header -->
           <div class="card-header-row">
-            <div class="title-wrap">
-              <h3>{{task.composite_item_name}}</h3>
-              <span class="sku-id">{{task.id}}</span>
+            <div class="title-wrap" style="display: flex; align-items: center;">
+              <mat-checkbox [(ngModel)]="task.selectedToSubmit" style="margin-right: 12px;"></mat-checkbox>
+              <div>
+                <h3 style="margin: 0;">{{task.composite_item_name}}</h3>
+                <span class="sku-id">{{task.id}}</span>
+              </div>
             </div>
             <div class="action-icons" style="display: flex; align-items: center;">
               <div class="timer-display" [class.overdue]="isOverdue(task)" style="margin-right: 12px; font-family: monospace; font-size: 16px; font-weight: bold;">

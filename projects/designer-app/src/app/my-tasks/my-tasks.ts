@@ -7,6 +7,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -93,6 +94,9 @@ export class MyTasks implements OnInit, OnDestroy {
 
     if (this.currentDesigner) {
       this.carpetService.getCarpetsForDesigner(this.currentDesigner.name).subscribe(data => {
+        if (this.tasks) {
+          this.tasks.forEach(t => { if (t._interval) clearInterval(t._interval); });
+        }
         this.tasks = data.map(c => ({
           ...c,
           timerDisplay: '00:00:00',
@@ -141,14 +145,16 @@ export class MyTasks implements OnInit, OnDestroy {
     this.tasks.forEach(t => {
       if (t._interval) clearInterval(t._interval);
       if (t.is_working && t.start_time) {
-        t._interval = setInterval(() => {
+        const updateTimer = () => {
           const st = t.start_time.toDate ? t.start_time.toDate() : new Date(t.start_time);
           const now = new Date();
           const diffSeconds = Math.floor((now.getTime() - st.getTime()) / 1000);
           const totalSeconds = (t.time_spent_seconds || 0) + diffSeconds;
           t.timerDisplay = this.formatTimer(totalSeconds);
           this.cdr.detectChanges();
-        }, 1000);
+        };
+        updateTimer();
+        t._interval = setInterval(updateTimer, 1000);
       } else {
         t.timerDisplay = this.formatTimer(t.time_spent_seconds || 0);
       }
@@ -186,7 +192,13 @@ export class MyTasks implements OnInit, OnDestroy {
     this.activityLogs = [];
     
     this.activityLogService.getLogsForCarpet(task.id).subscribe(logs => {
-      this.activityLogs = logs.sort((a, b) => {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      const filtered = logs.filter(l => {
+        const d = l.timestamp.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
+        return d >= cutoff;
+      });
+      this.activityLogs = filtered.sort((a, b) => {
         const dA = a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
         const dB = b.timestamp.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
         return dB.getTime() - dA.getTime();
@@ -250,6 +262,7 @@ export class MyTasks implements OnInit, OnDestroy {
     task.designer_readiness_date = d.toISOString();
     task.is_working = true;
     const startTime = new Date();
+    task.start_time = startTime;
     
     // Auto-pause others
     for (const t of this.tasks) {
@@ -283,7 +296,56 @@ export class MyTasks implements OnInit, OnDestroy {
     this.startTimers();
   }
 
-  submitTask(task: any) {
+  
+  selectAllTasks(event: any) {
+    if (this.selectedProjectGroup) {
+      this.selectedProjectGroup.tasks.forEach((t: any) => t.selectedToSubmit = event.target.checked);
+    }
+  }
+
+  submitSelectedTasks() {
+    if (!this.selectedProjectGroup) return;
+    const selected = this.selectedProjectGroup.tasks.filter((t: any) => t.selectedToSubmit);
+    if (selected.length === 0) return;
+
+    this.pendingUploadTask = selected; // Array instead of single object
+    
+    // Use the first task to figure out template and folders (they belong to same project)
+    const firstTask = selected[0];
+    this.currentGraphFolderUrl = firstTask.designer_folder_link || firstTask.folder_link || '';
+    
+    let scenario = 'designer_artwork_submission';
+    if (firstTask.type_of_work === 'Sample') scenario = 'designer_sample_submission';
+    
+    let template = this.appSettings?.emailTemplates?.[scenario] || this.settingsService.getDefaultSettings().emailTemplates['designer_artwork_submission'];
+    this.emailTemplate = { ...template };
+    this.emailTemplate.to = this.appSettings?.scEmail || '';
+    
+    let b = this.emailTemplate.body.replace(/\\n/g, '\n');
+    b = b.replace(/\[Project_Name\]/gi, firstTask.project?.project_name || '');
+    
+    // List all selected carpets
+    let carpetList = selected.map((t: any) => `- ${t.id} : ${t.composite_item_name}`).join('\n');
+    b = b.replace(/\[Carpet_Name\]/gi, 'Multiple Carpets:\n' + carpetList);
+    b = b.replace(/\[SKU\]/gi, 'Multiple SKUs');
+    b = b.replace(/\[Designer_Name\]/gi, this.currentDesigner?.name || '');
+    
+    if (this.currentGraphFolderUrl) {
+       b += '\n\nSharePoint Folder: ' + this.currentGraphFolderUrl;
+    }
+    this.emailBodyContent = b;
+    
+    let s = this.emailTemplate.subject;
+    s = s.replace(/\[Project_Name\]/gi, firstTask.project?.project_name || '');
+    s = s.replace(/\[Carpet_Name\]/gi, `${selected.length} Carpets`);
+    s = s.replace(/\[SKU\]/gi, 'Multiple SKUs');
+    s = s.replace(/\[Designer_Name\]/gi, this.currentDesigner?.name || '');
+    this.emailTemplate.subject = s;
+
+    this.dialog.open(this.uploadSubmitDialog, { width: '950px', maxWidth: '95vw', disableClose: true });
+  }
+
+submitTask(task: any) {
     this.pendingUploadTask = task;
     this.currentGraphFolderUrl = task.designer_folder_link || task.folder_link || '';
     this.isCreatingFolder = false;
@@ -325,42 +387,44 @@ export class MyTasks implements OnInit, OnDestroy {
 
   async confirmUploadSubmit() {
     if (!this.pendingUploadTask) return;
-    const task = this.pendingUploadTask;
-    if (task['isSubmitting']) return;
-    task['isSubmitting'] = true;
+    const tasksToSubmit = Array.isArray(this.pendingUploadTask) ? this.pendingUploadTask : [this.pendingUploadTask];
+    
+    if (tasksToSubmit[0]['isSubmitting']) return;
+    tasksToSubmit.forEach((t: any) => t['isSubmitting'] = true);
 
     try {
-      let newTotal = task.time_spent_seconds || 0;
-      if (task.is_working && task.start_time) {
-        const st = task.start_time.toDate ? task.start_time.toDate() : new Date(task.start_time);
-        const now = new Date();
-        const diffSeconds = Math.floor((now.getTime() - st.getTime()) / 1000);
-        newTotal += diffSeconds;
+      for (const task of tasksToSubmit) {
+        let newTotal = task.time_spent_seconds || 0;
+        if (task.is_working && task.start_time) {
+          const st = task.start_time.toDate ? task.start_time.toDate() : new Date(task.start_time);
+          const now = new Date();
+          const diffSeconds = Math.floor((now.getTime() - st.getTime()) / 1000);
+          newTotal += diffSeconds;
+        }
+
+        let newStatus = 'Pending SC Review';
+        if (task.status === 'Revision Requested' || task.status === 'Revision Needed') newStatus = 'Review Pending';
+        else if (task.type_of_work === 'Sample') newStatus = 'Review Pending';
+
+        await this.carpetService.updateCarpet(task.id, {
+          status: newStatus,
+          is_working: false,
+          time_spent_seconds: newTotal,
+          start_time: null,
+          status_updated_at: new Date()
+        });
+
+        await this.activityLogService.logActivity({
+          carpet_id: task.id,
+          project_id: task.project_fk,
+          user_name: this.currentDesigner!.name,
+          action: 'Submitted for Review',
+          comment: 'Artwork submitted for review.',
+          timestamp: new Date()
+        });
       }
 
-      let newStatus = 'Pending SC Review';
-      if (task.status === 'Revision Requested' || task.status === 'Revision Needed') newStatus = 'Review Pending';
-      else if (task.type_of_work === 'Sample') newStatus = 'Review Pending';
-
-      await this.carpetService.updateCarpet(task.id, {
-        status: newStatus,
-        is_working: false,
-        time_spent_seconds: newTotal,
-        start_time: null,
-        status_updated_at: new Date()
-      });
-
-      await this.activityLogService.logActivity({
-        carpet_id: task.id,
-        project_id: task.project_fk,
-        user_name: this.currentDesigner!.name,
-        action: 'Submitted for Review',
-        comment: 'Artwork submitted for review.',
-        timestamp: new Date()
-      });
-
       const finalBodyHtml = this.emailBodyContent.replace(/\n/g, '<br>');
-      
       const { firstValueFrom } = await import('rxjs');
       await firstValueFrom(this.graphService.sendEmail([this.emailTemplate.to], this.emailTemplate.subject, finalBodyHtml, true));
 
@@ -369,7 +433,7 @@ export class MyTasks implements OnInit, OnDestroy {
     } catch(e) {
       console.error(e);
     } finally {
-      task['isSubmitting'] = false;
+      tasksToSubmit.forEach((t: any) => t['isSubmitting'] = false);
     }
   }
 }
