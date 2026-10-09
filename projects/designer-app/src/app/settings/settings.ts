@@ -139,7 +139,7 @@ designer: User | null = null;
   async connectMicrosoft() {
     try {
       await this.msalService.instance.loginPopup({
-        scopes: ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All']
+        scopes: ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All'], redirectUri: window.location.origin + '/auth.html'
       });
       this.checkMsAccount();
       this.snackBar.open('Microsoft Account Connected successfully!', 'Close', { duration: 3000 });

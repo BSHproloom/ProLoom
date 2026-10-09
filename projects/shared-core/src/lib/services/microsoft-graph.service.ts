@@ -20,7 +20,7 @@ export class MicrosoftGraphService {
       console.warn('No user logged in to MSAL. Initiating login popup...');
       try {
         await this.msalService.instance.loginPopup({
-          scopes: scopes
+          scopes: scopes, redirectUri: window.location.origin + '/auth.html'
         });
         account = this.msalService.instance.getAllAccounts()[0];
         if (!account) throw new Error('Still no account after loginPopup');
@@ -31,7 +31,7 @@ export class MicrosoftGraphService {
     
     const request = {
       account: account,
-      scopes: scopes
+      scopes: scopes, redirectUri: window.location.origin + '/auth.html'
     };
 
     try {
