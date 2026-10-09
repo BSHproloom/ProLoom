@@ -24,24 +24,28 @@
                 "input": "projects/core-admin-app/public"
               }
             ],
-            "styles": ["projects/core-admin-app/src/styles.css"]
+            "styles": [
+              "projects/core-admin-app/src/styles.css"
+            ],
+            "polyfills": [
+              "zone.js"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all",
-              "serviceWorker": "projects/core-admin-app/ngsw-config.json"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -84,26 +88,31 @@
               {
                 "glob": "**/*",
                 "input": "projects/designer-app/public"
-              }
+              },
+              "projects/designer-app/src/firebase-messaging-sw.js"
             ],
-            "styles": ["projects/designer-app/src/styles.css"]
+            "styles": [
+              "projects/designer-app/src/styles.css"
+            ],
+            "polyfills": [
+              "zone.js"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all",
-              "serviceWorker": "projects/designer-app/ngsw-config.json"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -149,24 +158,28 @@
               },
               "projects/am-app/src/firebase-messaging-sw.js"
             ],
-            "styles": ["projects/am-app/src/styles.css"]
+            "styles": [
+              "projects/am-app/src/styles.css"
+            ],
+            "polyfills": [
+              "zone.js"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all",
-              "serviceWorker": "projects/am-app/ngsw-config.json"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -235,22 +248,28 @@
               {
                 "glob": "**/*",
                 "input": "projects/production-app/public"
-              }
+              },
+              "projects/production-app/src/firebase-messaging-sw.js"
             ],
-            "styles": ["projects/production-app/src/styles.css"]
+            "styles": [
+              "projects/production-app/src/styles.css"
+            ],
+            "polyfills": [
+              "zone.js"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
