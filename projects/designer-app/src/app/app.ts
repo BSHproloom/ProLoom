@@ -38,6 +38,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrl: './app.css',
 })
 export class App implements OnInit {
+  get isPopup(): boolean { return typeof window !== 'undefined' && window.opener && window.opener !== window; }
   protected readonly title = signal('Carpet Control - Designer Workspace');
   isSidebarOpen = false; // default collapsed
 
