@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MyTasks } from './my-tasks';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('MyTasks', () => {
-  let component: MyTasks;
-  let fixture: ComponentFixture<MyTasks>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [MyTasks],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(MyTasks);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(MyTasks);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(MyTasks);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

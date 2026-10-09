@@ -1,9 +1,23 @@
-<div class="detail-container" *ngIf="project">
+<div class="loading-container" *ngIf="isLoadingProject" style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<div class="detail-container" *ngIf="!isLoadingProject && project">
   <div class="header">
-    <button mat-icon-button routerLink="/projects" class="back-btn">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <h2>{{ project.project_name }} <span class="client-badge">{{ project.client_name }}</span></h2>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <button mat-icon-button routerLink="/projects" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h2 style="margin: 0;">{{ project.project_name }} <span class="client-badge">{{ project.client_name }}</span></h2>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" (click)="openEditProjectDialog()">
+        <mat-icon>edit</mat-icon> Edit Project
+      </button>
+      <button mat-stroked-button color="warn" (click)="deleteProject()">
+        <mat-icon>delete</mat-icon> Delete Project
+      </button>
+    </div>
   </div>
 
   <mat-card class="info-card mat-elevation-z2">
@@ -16,7 +30,13 @@
           <strong>Account Manager:</strong> {{ project.am }}
         </div>
         <div class="info-item">
+          <strong>Sales Order Number:</strong> {{ project.sales_order || 'N/A' }}
+        </div>
+        <div class="info-item">
           <strong>Timeline:</strong> {{ project.timeline_weeks }} weeks
+        </div>
+        <div class="info-item">
+          <strong>Client Expectation Date:</strong> {{ (project.client_expectation_date | date:'mediumDate') || 'N/A' }}
         </div>
         <div class="info-item">
           <strong>Status:</strong> <span class="status-badge" [ngClass]="project.overall_status.toLowerCase()">{{ project.overall_status }}</span>
@@ -25,7 +45,49 @@
     </mat-card-content>
   </mat-card>
 
-  <h3 class="section-title">Carpets & Assignment</h3>
+  <mat-card class="info-card mat-elevation-z2" style="margin-top: 24px;">
+    <mat-card-content>
+      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; color: #334155;">Financials & Documents</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>Advance Payment:</strong> 
+          <mat-icon style="vertical-align: middle; margin-left: 8px; color: #10b981; font-size: 20px; height: 20px;" *ngIf="project.advance_payment">check_circle</mat-icon>
+          <mat-icon style="vertical-align: middle; margin-left: 8px; color: #ef4444; font-size: 20px; height: 20px;" *ngIf="!project.advance_payment">cancel</mat-icon>
+        </div>
+        <div class="info-item" style="grid-column: span 2;">
+          <strong>Shared Folder:</strong>
+          <a *ngIf="project.shared_folder_link" [href]="project.shared_folder_link" target="_blank" style="margin-left: 8px; color: #0050a0; text-decoration: none;">
+            <mat-icon style="vertical-align: middle; font-size: 16px; height: 16px;">open_in_new</mat-icon> Open Folder
+          </a>
+          <span *ngIf="!project.shared_folder_link" style="color: #94a3b8; margin-left: 8px;">No link provided</span>
+        </div>
+      </div>
+
+      <div *ngIf="project.onedrive_folder_id" style="margin-top: 24px;">
+        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #475569;">Files in OneDrive:</h4>
+        <div *ngIf="isLoadingFiles" style="display: flex; align-items: center; gap: 8px; color: #64748b;">
+          <mat-spinner diameter="20"></mat-spinner> Loading files...
+        </div>
+        <div *ngIf="!isLoadingFiles && projectFiles.length === 0" style="color: #64748b; font-style: italic;">
+          This folder is currently empty.
+        </div>
+        <div *ngIf="!isLoadingFiles && projectFiles.length > 0" style="display: flex; flex-direction: column; gap: 8px;">
+          <div *ngFor="let file of projectFiles" style="display: flex; align-items: center; padding: 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <mat-icon style="color: #0050a0; margin-right: 12px;">insert_drive_file</mat-icon>
+            <span style="flex-grow: 1; font-weight: 500; color: #334155;">{{ file.name }}</span>
+            <a mat-button color="primary" [href]="file.webUrl" target="_blank">View File</a>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 16px;">
+    <h3 class="section-title" style="margin: 0;">Carpets & Assignment</h3>
+    <button mat-flat-button color="primary" (click)="openAddCarpetDialog()">
+      <mat-icon>add</mat-icon> Add Carpet
+    </button>
+  </div>
 
   <div class="mat-elevation-z2 table-wrapper">
     <table mat-table [dataSource]="carpets">
@@ -45,11 +107,24 @@
         <td mat-cell *matCellDef="let element"> {{element.size}} </td>
       </ng-container>
 
+      <ng-container matColumnDef="folder">
+        <th mat-header-cell *matHeaderCellDef> Workspace </th>
+        <td mat-cell *matCellDef="let element">
+          <a *ngIf="element.designer_folder_link" [href]="element.designer_folder_link" target="_blank" style="color: #0050a0; text-decoration: none;">
+            <mat-icon style="vertical-align: middle; font-size: 16px; height: 16px;">folder_open</mat-icon> Open
+          </a>
+          <span *ngIf="!element.designer_folder_link" style="color: #94a3b8; font-size: 12px;">Not Created</span>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef> Status </th>
         <td mat-cell *matCellDef="let element"> 
-          <span class="status-badge" [ngClass]="element.status.replace(' ', '-').toLowerCase()">
-            {{element.status}}
+          <span class="status-badge" [ngClass]="element.status.replace(' ', '-').toLowerCase()" [style.background-color]="isOverdue(element) ? '#fee2e2' : ''" [style.color]="isOverdue(element) ? '#dc2626' : ''" [style.border]="isOverdue(element) ? '1px solid #f87171' : ''">
+            {{element.status}} <span *ngIf="isOverdue(element)"> (Overdue)</span>
+          </span>
+          <span *ngIf="calculateDaysAging(element) > 3" style="display: inline-flex; align-items: center; background: #fff1f2; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; border: 1px solid #ffe4e6;" title="Sitting in this status for over 3 days">
+            <mat-icon inline style="font-size: 14px; width: 14px; height: 14px; margin-right: 4px;">flag</mat-icon> Aging: {{calculateDaysAging(element)}}d
           </span>
         </td>
       </ng-container>
@@ -57,8 +132,8 @@
       <ng-container matColumnDef="designer">
         <th mat-header-cell *matHeaderCellDef> Assigned Designer </th>
         <td mat-cell *matCellDef="let element">
-          <mat-form-field appearance="outline" class="designer-select" *ngIf="element.status === 'Need to Assign' || element.status === 'Assigned'">
-            <mat-select [(ngModel)]="element.designer" placeholder="Select Designer">
+          <mat-form-field appearance="outline" class="compact-dropdown" *ngIf="element.status === 'Need to Assign' || element.status === 'Assigned'">
+            <mat-select [value]="element.designer" (selectionChange)="assignDesigner(element, $event.value)" placeholder="Select Designer">
               <mat-option *ngFor="let d of designers" [value]="d.name">{{ d.name }}</mat-option>
             </mat-select>
           </mat-form-field>
@@ -71,11 +146,55 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> Actions </th>
         <td mat-cell *matCellDef="let element">
-          <button mat-raised-button color="primary" 
-                  [disabled]="!element.designer || element.status !== 'Need to Assign'"
-                  (click)="assignDesigner(element, element.designer)">
-            Assign
-          </button>
+          <!-- Global Folder Access Button (Always visible if a folder exists) -->
+          <a *ngIf="element.files && element.files['main']" 
+             [href]="element.files['main']" 
+             target="_blank" 
+             mat-flat-button 
+             style="background: #e0e7ff; color: #4338ca; margin-bottom: 8px;">
+            <mat-icon>folder_open</mat-icon> Open Artwork Folder
+          </a>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;" *ngIf="!element.id.includes('-SampleFile') && !element.id.includes('-SampleRev') && !element.id.includes('-ProdFile')">
+            <ng-container *ngIf="element.status === 'Pending SC Review'">
+              <button mat-stroked-button color="primary" (click)="approveArtwork(element)">Approve</button>
+              <button mat-stroked-button color="warn" (click)="requestRevision(element)">Request Revision</button>
+            </ng-container>
+            <ng-container *ngIf="element.status === 'Sent to AM' || element.status === 'Approved' || element.status === 'Ready'">
+              <button mat-stroked-button color="warn" (click)="requestRevision(element)" matTooltip="Client requested artwork revisions">Client Revision</button>
+              <button mat-flat-button color="accent" (click)="requestSampleFile(element)">Request Sample File</button>
+              <button mat-stroked-button color="warn" (click)="setHoldStatus(element, 'On Hold - Client Decision')" title="Waiting on client decision (e.g. Yarn Shortage)">Hold: Client</button>
+              <button mat-stroked-button color="warn" (click)="setHoldStatus(element, 'On Hold - Waiting for Yarn')" title="Waiting for yarn order to arrive">Hold: Yarn</button>
+              <button mat-stroked-button color="primary" (click)="setYarnEta(element)">Set Yarn ETA</button>
+              <button mat-flat-button color="primary" (click)="requestProductionFile(element)">Request Prod File</button>
+            </ng-container>
+            <ng-container *ngIf="element.status === 'On Hold - Client Decision' || element.status === 'On Hold - Waiting for Yarn'">
+              <button mat-stroked-button color="primary" (click)="resumeFromHold(element)">Resume</button>
+            </ng-container>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;" *ngIf="element.id.includes('-SampleFile') || element.id.includes('-SampleRev')">
+            <ng-container *ngIf="element.status === 'Pending SC Review'">
+              <button mat-flat-button color="primary" (click)="assignToProduction(element)">Assign to Production</button>
+            </ng-container>
+            <ng-container *ngIf="element.status === 'In Production' || element.status === 'Sample Produced'">
+              <button mat-stroked-button color="warn" (click)="requestSampleRevision(element)">Request Sample Revision</button>
+            </ng-container>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;" *ngIf="element.id.includes('-ProdFile')">
+            <ng-container *ngIf="element.status === 'Pending SC Review'">
+              <button mat-flat-button color="primary" (click)="assignToProduction(element)">Assign to Final Production</button>
+            </ng-container>
+            <ng-container *ngIf="element.status === 'Production File Ready'">
+              <button mat-flat-button color="accent" (click)="assignToProduction(element)">Send to Factory (Job Order)</button>
+            </ng-container>
+            <ng-container *ngIf="element.status === 'Production File Issue'">
+              <button mat-stroked-button color="warn" (click)="requestProdFileRevision(element)" title="Send back to Designer to fix untuftable file">
+                <mat-icon inline style="vertical-align: middle; margin-right: 4px;">warning</mat-icon> Send back to Designer (Fix)
+              </button>
+            </ng-container>
+          </div>
         </td>
       </ng-container>
 

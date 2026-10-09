@@ -1,0 +1,60 @@
+<div class="file-viewer-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3><mat-icon>attach_file</mat-icon> Attachments</h3>
+    </div>
+    
+    <div class="file-list">
+      <div class="file-item" 
+           *ngFor="let file of fileEntries" 
+           [class.active]="selectedFile?.key === file.key"
+           (click)="selectFile(file)">
+        <mat-icon>{{ getFileIcon(file.key) }}</mat-icon>
+        <div class="file-info">
+          <span class="file-name">{{ formatFileName(file.key) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="remark-section" *ngIf="data.remark">
+      <h4><mat-icon>comment</mat-icon> Designer Remark</h4>
+      <p>{{ data.remark }}</p>
+    </div>
+  </div>
+
+  <!-- Main Viewport -->
+  <div class="main-viewport">
+    <div class="viewport-header">
+      <h2>{{ selectedFile ? formatFileName(selectedFile.key) : 'Select a file' }}</h2>
+      <div class="header-actions">
+        <a *ngIf="selectedFile" mat-stroked-button color="primary" [href]="selectedFile.url" target="_blank">
+          <mat-icon>open_in_new</mat-icon> Open in New Tab
+        </a>
+        <button mat-icon-button (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+    
+    <div class="viewport-content" *ngIf="selectedFile">
+      <ng-container *ngIf="!isOneDriveLink">
+        <iframe [src]="safeUrl" width="100%" height="100%" style="border: none;"></iframe>
+      </ng-container>
+      
+      <div class="onedrive-placeholder" *ngIf="isOneDriveLink">
+        <mat-icon style="font-size: 64px; height: 64px; width: 64px; color: #2563eb; margin-bottom: 16px;">cloud</mat-icon>
+        <h3 style="margin: 0; color: #1e293b; font-size: 20px;">OneDrive Secure File</h3>
+        <p style="color: #64748b; margin-top: 8px;">For security, Microsoft requires this file to be opened in a new tab.</p>
+        <a mat-flat-button color="primary" [href]="selectedFile.url" target="_blank" style="margin-top: 16px;">
+          <mat-icon>open_in_new</mat-icon> Open File in OneDrive
+        </a>
+      </div>
+    </div>
+    
+    <div class="viewport-empty" *ngIf="!selectedFile">
+      <mat-icon>preview</mat-icon>
+      <p>Select a file from the sidebar to view it here.</p>
+    </div>
+  </div>
+</div>

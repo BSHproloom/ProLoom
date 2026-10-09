@@ -1,0 +1,22 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-column-action {
+  width: 120px;
+  text-align: right;
+}

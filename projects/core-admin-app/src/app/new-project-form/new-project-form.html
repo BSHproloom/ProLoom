@@ -1,105 +1,167 @@
-<div class="form-container">
-  <h2>Create New Project</h2>
-  
-  <form [formGroup]="projectForm" (ngSubmit)="onSubmit(formDirective)" #formDirective="ngForm" class="project-form">
+<div class="form-wrapper">
+  <form [formGroup]="projectForm" (ngSubmit)="onSubmit(formDirective)" #formDirective="ngForm" class="modern-form">
     
-    <div class="row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Client Name</mat-label>
-        <input type="text" matInput formControlName="client_name" [matAutocomplete]="auto" (input)="filterClients($event)">
-        <mat-autocomplete #auto="matAutocomplete">
-          <mat-option *ngFor="let client of filteredClients" [value]="client">
-            {{client}}
-          </mat-option>
-        </mat-autocomplete>
-        <mat-error *ngIf="projectForm.get('client_name')?.hasError('required')">Client name is required</mat-error>
-      </mat-form-field>
-  
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Project Name</mat-label>
-        <input matInput formControlName="project_name">
-        <mat-error *ngIf="projectForm.get('project_name')?.hasError('required')">Project name is required</mat-error>
-      </mat-form-field>
-    </div>
+    <mat-card class="main-form-card mat-elevation-z2">
+      <div class="main-header">
+        <h2>Create New Project</h2>
+      </div>
 
-    <div class="row">
-      <mat-form-field appearance="outline">
-        <mat-label>Width (m)</mat-label>
-        <input matInput type="number" formControlName="width">
-        <mat-error *ngIf="projectForm.get('width')?.hasError('required')">Width is required</mat-error>
-        <mat-error *ngIf="projectForm.get('width')?.hasError('min')">Must be > 0</mat-error>
-      </mat-form-field>
-  
-      <mat-form-field appearance="outline">
-        <mat-label>Height (m)</mat-label>
-        <input matInput type="number" formControlName="height">
-        <mat-error *ngIf="projectForm.get('height')?.hasError('required')">Height is required</mat-error>
-        <mat-error *ngIf="projectForm.get('height')?.hasError('min')">Must be > 0</mat-error>
-      </mat-form-field>
-    </div>
+      <mat-card-content class="main-content">
+        <h3 class="segment-title">Project Details</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Project Name</mat-label>
+            <input matInput formControlName="project_name" placeholder="e.g. Burj Khalifa Lobby">
+            <mat-error *ngIf="projectForm.get('project_name')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
 
-    <div class="row">
-      <mat-form-field appearance="outline">
-        <mat-label>Carpet Quality</mat-label>
-        <mat-select formControlName="carpet_quality">
-          <mat-option *ngFor="let q of qualities" [value]="q">{{ q }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-  
-      <mat-form-field appearance="outline">
-        <mat-label>No. of Rugs</mat-label>
-        <input matInput type="number" formControlName="no_of_rugs">
-      </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Client Name</mat-label>
+            <input type="text" matInput formControlName="client_name" [matAutocomplete]="clientAuto" (input)="filterClients($event)">
+            <mat-autocomplete #clientAuto="matAutocomplete">
+              <mat-option *ngFor="let c of filteredClients" [value]="c">{{c}}</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="projectForm.get('client_name')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Type of Carpet</mat-label>
-        <mat-select formControlName="type_of_carpet">
-          <mat-option *ngFor="let t of types" [value]="t">{{ t }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Country / Location</mat-label>
+            <input matInput formControlName="country" placeholder="e.g. UAE">
+            <mat-error *ngIf="projectForm.get('country')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
 
-    <div class="row">
-      <mat-form-field appearance="outline">
-        <mat-label>Timeline (Weeks)</mat-label>
-        <input matInput type="number" formControlName="timeline_weeks">
-        <mat-error *ngIf="projectForm.get('timeline_weeks')?.hasError('required')">Timeline is required</mat-error>
-      </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Expectation Date</mat-label>
+            <input matInput [matDatepicker]="expPicker" formControlName="client_expectation_date" readonly (click)="expPicker.open()">
+            <mat-datepicker-toggle matIconSuffix [for]="expPicker"></mat-datepicker-toggle>
+            <mat-datepicker #expPicker></mat-datepicker>
+          </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Client Commitment Date</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="client_commitment_date">
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="projectForm.get('client_commitment_date')?.hasError('required')">Date is required</mat-error>
-      </mat-form-field>
-    </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Account Manager</mat-label>
+            <input type="text" matInput formControlName="am" [matAutocomplete]="amAuto" (input)="filterAms($event)">
+            <mat-autocomplete #amAuto="matAutocomplete">
+              <mat-option *ngFor="let am of filteredAms" [value]="am">{{am}}</mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="projectForm.get('am')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+        </div>
 
-    <div class="row">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Assign Account Manager (AM)</mat-label>
-        <mat-select formControlName="am">
-          <mat-option *ngFor="let am of ams" [value]="am">{{ am }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="projectForm.get('am')?.hasError('required')">AM is required</mat-error>
-      </mat-form-field>
-    </div>
+        <div class="segment-divider"></div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Client Expectation</mat-label>
-      <textarea matInput formControlName="client_expectation" rows="3"></textarea>
-    </mat-form-field>
+        <h3 class="segment-title">Financials & Documents</h3>
+        <div class="form-grid">
+          <mat-checkbox formControlName="advance_payment" color="primary" class="large-checkbox">
+            Advance Payment Received
+          </mat-checkbox>
+        </div>
 
-    <div class="row align-center">
-      <mat-checkbox formControlName="skip_artwork" color="primary">
-        Skip directly to sample without artwork
-      </mat-checkbox>
-    </div>
+        <div class="segment-divider"></div>
 
-    <div class="actions">
-      <button mat-raised-button color="primary" type="submit">
-        Create Project
-      </button>
+        <h3 class="segment-title">Carpet Configurations</h3>
+        <div formArrayName="carpets" class="carpets-container-inner">
+          <div class="carpet-segment" *ngFor="let carpetForm of carpets.controls; let i = index" [formGroupName]="i">
+            <div class="carpet-header">
+              <div class="header-left">
+                <div class="sku-badge">{{ getSku(i) }}</div>
+                
+                <mat-form-field appearance="outline" class="inline-field flex-grow">
+                  <mat-label>Carpet Name / Identifier</mat-label>
+                  <input matInput formControlName="name" placeholder="e.g. Lobby Main Rug">
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="inline-field type-field">
+                  <mat-label>Carpet Type</mat-label>
+                  <mat-select formControlName="carpet_type">
+                    <mat-option value="Rug">Rug</mat-option>
+                    <mat-option value="wall to wall">Wall to Wall</mat-option>
+                    <mat-option value="inserted">Inserted</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="qty-wrapper">
+                  <label>Qty:</label>
+                  <input type="number" formControlName="quantity" min="1" class="qty-input">
+                </div>
+              </div>
+              <button mat-icon-button color="warn" type="button" (click)="removeCarpet(i)" [disabled]="carpets.length === 1">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+            
+            <div class="carpet-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Width (m)</mat-label>
+                <input matInput type="number" formControlName="width" (input)="calculateArea(i)">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Height (m)</mat-label>
+                <input matInput type="number" formControlName="height" (input)="calculateArea(i)">
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Total Area (sqm)</mat-label>
+                <input matInput type="number" formControlName="area" readonly class="readonly-highlight">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Quality</mat-label>
+                <mat-select formControlName="quality">
+                  <mat-option *ngFor="let q of qualities" [value]="q">{{ q }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Material Blend</mat-label>
+                <mat-select formControlName="material">
+                  <mat-option value="75% Wool and 25% Silk">75% Wool and 25% Silk</mat-option>
+                  <mat-option value="100% Wool">100% Wool</mat-option>
+                  <mat-option value="100% Silk">100% Silk</mat-option>
+                  <mat-option value="75% Silk and 25% Wool">75% Silk and 25% Wool</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="taher-section" *ngIf="carpetForm.get('carpet_type')?.value === 'wall to wall'">
+              <div class="taher-header">Wall to Wall Advanced Details</div>
+              <div class="taher-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Dimensions Source</mat-label>
+                  <mat-select formControlName="dimensions_from">
+                    <mat-option value="Mr. Taher">Mr. Taher</mat-option>
+                    <mat-option value="CAD">CAD Drawing</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="span-3">
+                  <mat-label>Quantification / TR No. / Special Notes</mat-label>
+                  <textarea matInput formControlName="taher_details" rows="2" placeholder="Paste full details from Mr. Taher here..."></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="form-actions-bar">
+      <div class="left-actions">
+        <button mat-stroked-button color="primary" type="button" (click)="addCarpet()" class="add-carpet-btn">
+          <mat-icon>add_circle_outline</mat-icon> Add Additional Carpet
+        </button>
+        <mat-checkbox formControlName="skip_artwork" color="primary">
+          Bypass Artwork Phase
+        </mat-checkbox>
+      </div>
+      
+      <div class="right-actions">
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting" class="submit-btn">
+          <mat-icon *ngIf="!isSubmitting">check_circle</mat-icon>
+          <mat-icon *ngIf="isSubmitting" class="spin">sync</mat-icon>
+          {{ isSubmitting ? 'Creating Project...' : 'Finalize & Create Project' }}
+        </button>
+      </div>
     </div>
   </form>
 </div>

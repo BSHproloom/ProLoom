@@ -1,0 +1,8 @@
+{
+  "name": "production-app",
+  "version": "1.0.0",
+  "description": "Production App",
+  "scripts": {
+    "cap": "cap"
+  }
+}

@@ -1,0 +1,77 @@
+.aesthetic-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.loom-matrix {
+  min-width: 600px;
+  border-left: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+}
+
+.loom-row {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header-row {
+  background: #f9fafb;
+}
+
+.loom-label {
+  width: 80px;
+  min-width: 80px;
+  padding: 12px 8px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  background: #fff;
+}
+
+.timeline-container {
+  flex: 1;
+  display: flex;
+  position: relative;
+  min-height: 48px;
+}
+
+.day-header {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  color: #6b7280;
+  padding: 8px 0;
+  border-right: 1px solid #e5e7eb;
+}
+.day-header:last-child {
+  border-right: none;
+}
+
+.grid-line {
+  flex: 1;
+  border-right: 1px solid #e5e7eb;
+  height: 100%;
+}
+.grid-line:last-child {
+  border-right: none;
+}
+
+.scheduled-carpet {
+  top: 10px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 10;
+}
+.scheduled-carpet:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+  z-index: 20;
+}

@@ -1,0 +1,304 @@
+<div class="calculator-container" style="background: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); width: max-content; min-width: 100%; box-sizing: border-box; padding: 24px;">
+  
+  <!-- TABS -->
+  <div style="margin: -24px -24px 24px -24px; padding: 24px 24px 0 24px;">
+    <div style="display: flex; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; flex-wrap: wrap;">
+    <button type="button" [ngClass]="{'border-b-4 border-primary': activeTab === 'queue'}" style="padding: 12px 24px; font-weight: bold; background: transparent; border: none; cursor: pointer; color: #0f172a; font-size: 15px; border-bottom: 4px solid transparent;" [style.borderBottomColor]="activeTab === 'queue' ? '#4f46e5' : 'transparent'" (click)="activeTab = 'queue'">Tasks Needing Yarn</button>
+    <button type="button" [ngClass]="{'border-b-4 border-primary': activeTab === 'active'}" style="padding: 12px 24px; font-weight: bold; background: transparent; border: none; cursor: pointer; color: #0f172a; font-size: 15px; border-bottom: 4px solid transparent;" [style.borderBottomColor]="activeTab === 'active' ? '#4f46e5' : 'transparent'" (click)="activeTab = 'active'">Yarnsheet Editor</button>
+    <button type="button" [ngClass]="{'border-b-4 border-primary': activeTab === 'saved'}" style="padding: 12px 24px; font-weight: bold; background: transparent; border: none; cursor: pointer; color: #0f172a; font-size: 15px; border-bottom: 4px solid transparent;" [style.borderBottomColor]="activeTab === 'saved' ? '#4f46e5' : 'transparent'" (click)="activeTab = 'saved'">Saved Sheets</button>
+    <button type="button" [ngClass]="{'border-b-4 border-primary': activeTab === 'settings'}" style="padding: 12px 24px; font-weight: bold; background: transparent; border: none; cursor: pointer; color: #0f172a; font-size: 15px; border-bottom: 4px solid transparent;" [style.borderBottomColor]="activeTab === 'settings' ? '#4f46e5' : 'transparent'" (click)="activeTab = 'settings'">Settings</button>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'queue'">
+    <div style="font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 16px;">Tasks Needing Yarn Sheet</div>
+    
+    <div *ngIf="tasksNeedingYarn.length === 0" style="color: #64748b; font-style: italic;">
+      No tasks currently need a yarn sheet. Great job!
+    </div>
+    
+    <div *ngFor="let group of tasksNeedingYarn" style="margin-bottom: 24px; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-weight: bold; font-size: 16px; color: #3730a3;">Project: {{ group.project?.project_name || group.project?.id || 'Unknown' }}</div>
+        <button mat-flat-button color="primary" (click)="prepareYarnSheet(group.carpets, group.project)">Prepare All Yarn Sheets for Project</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div *ngFor="let carpet of group.carpets" style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: bold; color: #0f172a;">{{ carpet.composite_item_name }}</div>
+            <div style="font-size: 12px; color: #64748b;">
+              Status: {{ carpet.status }} &bull; Qty: {{ carpet.no_of_rugs || carpet.quantity || 1 }} &bull; Size: {{ carpet.width || 0 }}x{{ carpet.height || carpet.length || 0 }}
+            </div>
+          </div>
+          <button mat-stroked-button color="primary" (click)="prepareYarnSheet([carpet], group.project)">Prepare Yarn Sheet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'active'">
+    <form [formGroup]="masterForm">
+      <div style="margin-bottom: 24px; display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 16px 24px; border-radius: 8px; border: 1px solid #e2e8f0; flex-wrap: wrap;">
+        <div style="font-weight: bold; color: #475569; font-size: 14px;">Project Name:</div>
+        <input type="text" formControlName="project_name" class="cell-input" style="width: 250px; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 4px; font-size: 16px; font-weight: bold; color: #0f172a;" placeholder="">
+        <button mat-raised-button color="primary" type="button" (click)="saveProjectToLocal()" style="margin: 0;" [disabled]="isSubmitting || carpetsFormArray.length === 0">
+          <mat-icon>save</mat-icon> Save Sheet
+        </button>
+        <button mat-raised-button color="accent" type="button" style="margin: 0;" (click)="exportExcel()" [disabled]="carpetsFormArray.length === 0">
+          <mat-icon>file_download</mat-icon> Export Excel
+        </button>
+      </div>
+
+      <div class="table-container" *ngIf="carpetsFormArray.length > 0" style="margin-bottom: 20px;">
+        <div formArrayName="carpets">
+            <ng-container *ngFor="let carpetGroup of carpetsFormArray.controls; let c = index" [formGroupName]="c">
+              <div style="position: relative; margin-bottom: 32px;">
+                <button *ngIf="carpetsFormArray.length > 1" type="button" class="icon-btn tiny-btn remove-btn" style="position: absolute; right: 0px; top: -12px; background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 10; cursor: pointer; font-weight: bold;" (click)="removeCarpet(c)" title="Remove Carpet">×</button>
+          
+          <div>
+            <table style="border-collapse: separate; border-spacing: 0; background: white; text-align: left; width: max-content;">
+              <tr>
+                <!-- CARPET DETAILS CELL -->
+                <th class="sticky-col-1" rowspan="6" style="border: 1px solid #cbd5e1; padding: 12px; background: #f8fafc; min-width: 140px; width: 140px; box-sizing: border-box; vertical-align: top; text-align: left; box-shadow: inset -1px 0 0 #cbd5e1; position: sticky; left: 0; z-index: 5;">
+                  <div style="font-size: 12px; font-weight: bold; color: #3730a3; background: #eef2ff; padding: 2px 6px; border-radius: 4px; border: 1px solid #c7d2fe; margin-bottom: 8px; display: inline-block;">
+                    Area: {{ getCalculatedArea($any(carpetGroup)) | number:'1.2-2' }} sqm
+                  </div>
+
+                  <div style="margin-bottom: 8px;">
+                    <input type="text" formControlName="carpet_name" class="cell-input" style="width: 100%; font-weight: bold; font-size: 14px; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; color: #0f172a; box-sizing: border-box;" placeholder="SKU / Name">
+                  </div>
+                  
+                  <div style="margin-bottom: 8px;">
+                    <input type="number" formControlName="qty" class="cell-input text-center" style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; box-sizing: border-box;" placeholder="Qty" title="Quantity">
+                  </div>
+                  <div style="margin-bottom: 8px;">
+                    <select formControlName="shape" class="cell-select" style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; box-sizing: border-box;" title="Shape">
+                      <option value="Square/Rectangle">Sq/Rect</option>
+                      <option value="Circle">Circle</option>
+                      <option value="Oval">Oval</option>
+                    </select>
+                  </div>
+
+                  <div style="margin-bottom: 8px;">
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                      <ng-container *ngIf="carpetGroup.get('shape')?.value !== 'Circle'">
+                        <input type="number" formControlName="width" class="cell-input text-center" style="width: 50%; border: 1px solid #cbd5e1; padding: 5px; border-radius: 4px; box-sizing: border-box;" placeholder="W">
+                        <span style="font-size: 12px; color: #94a3b8;">x</span>
+                        <input type="number" formControlName="length" class="cell-input text-center" style="width: 50%; border: 1px solid #cbd5e1; padding: 5px; border-radius: 4px; box-sizing: border-box;" placeholder="L">
+                      </ng-container>
+
+                      <ng-container *ngIf="carpetGroup.get('shape')?.value === 'Circle'">
+                        <input type="number" formControlName="diameter" class="cell-input text-center" style="width: 100%; border: 1px solid #cbd5e1; padding: 5px; border-radius: 4px; box-sizing: border-box;" placeholder="Diameter">
+                      </ng-container>
+                    </div>
+                  </div>
+
+                  <div>
+                    <select formControlName="quality" class="cell-select font-bold" style="width: 100%; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; color: #0f172a; box-sizing: border-box;" title="Quality">
+                      <option value="HT 550">HT-550</option>
+                      <option value="HT 650">HT-650</option>
+                      <option value="HT 750">HT-750</option>
+                      <option value="HT 850">HT-850</option>
+                    </select>
+                  </div>
+                </th>
+                
+                <!-- LEGEND: Material -->
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Material</td>
+                
+                <!-- COLORS: Material -->
+                <ng-container *ngFor="let group of getMaterialGroups(c)">
+                  <td [attr.colspan]="group.count" style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; font-size: 12px; position: relative;"
+                      [ngStyle]="{'background': group.material === 'Wool' ? '#ffedd5' : (group.material === 'Silk' ? '#eff6ff' : '#f5f3ff'), 'color': group.material === 'Wool' ? '#c2410c' : (group.material === 'Silk' ? '#1d4ed8' : '#6d28d9')}">
+                    {{ group.material }}
+                  </td>
+                </ng-container>
+
+                <!-- ADD COLOR: Stacked Column -->
+                <td style="border: 1px solid #cbd5e1; padding: 8px; width: 140px; min-width: 140px; box-sizing: border-box; background: #f8fafc; vertical-align: top;" *ngIf="newColorForms[c]" rowspan="6">
+                  <div style="font-weight: bold; font-size: 11px; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Add Color</div>
+                  <select [formControl]="$any(newColorForms[c].get('material'))" class="cell-select" style="width: 100%; background: white; border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; color: #0f172a; margin-bottom: 6px; box-sizing: border-box;">
+                    <option value="Wool">Wool</option>
+                    <option value="Silk">Silk</option>
+                    <option value="Acrylic">Acrylic</option>
+                    <option value="Roya">Roya</option>
+                    <option value="Silkana">Silkana</option>
+                  </select>
+                  
+                  <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+                    <input type="text" [formControl]="$any(newColorForms[c].get('color'))" class="cell-input" style="flex: 1; background: white; border: 1px solid #cbd5e1; color: #0f172a; padding: 6px; border-radius: 4px; min-width: 0;" placeholder="Code">
+                    <div style="display: flex; align-items: center; background: white; border: 1px solid #cbd5e1; width: 50px; border-radius: 4px; padding-right: 4px;">
+                      <input type="number" [formControl]="$any(newColorForms[c].get('percentage'))" class="cell-input text-center" style="width: 100%; padding: 6px 2px; color: #0f172a; border: none; outline: none; background: transparent;" placeholder="%">
+                      <span style="font-size: 10px; color: #64748b;">%</span>
+                    </div>
+                  </div>
+                  
+                  <button type="button" class="toolbar-btn primary-btn" style="width: 100%; padding: 6px 12px; font-size: 12px; margin: 0; justify-content: center;" (click)="addColorToCarpet(c)" [disabled]="newColorForms[c].invalid">Add Color</button>
+                </td>
+              </tr>
+              
+              <!-- ROW 2: Yarn -->
+              <tr>
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Yarn (Code / %)</td>
+                <ng-container *ngFor="let cg of getColorsFormArray(c).controls; let colIndex = index">
+                  <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; position: relative; width: 100px; min-width: 100px;">
+                    <div style="font-size: 13px; font-weight: bold; color: #0f172a;">
+                      {{ cg.get('color')?.value }} <span style="font-size: 11px; font-weight: normal; color: #64748b;">({{ cg.get('percentage')?.value }}%)</span>
+                    </div>
+                    <button type="button" class="icon-btn tiny-btn remove-btn" style="position: absolute; top: -6px; right: -6px; background: white; border: 1px solid #cbd5e1; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; z-index: 10;" (click)="removeColorFromCarpet(c, colIndex)">×</button>
+                  </td>
+                </ng-container>
+              </tr>
+
+              <!-- ROW 3: Required KG -->
+              <tr>
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Required KG</td>
+                <ng-container *ngFor="let cg of getColorsFormArray(c).controls; let colIndex = index">
+                  <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold; color: #3730a3; background: #eef2ff;">
+                    {{ getKgForColor(c, colIndex) | number:'1.1-1' }}
+                  </td>
+                </ng-container>
+              </tr>
+
+              <!-- ROW 4: Stock in Hand -->
+              <tr>
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Stock in Hand</td>
+                <ng-container formArrayName="colors">
+                  <ng-container *ngFor="let cg of getColorsFormArray(c).controls; let colIndex = index">
+                    <td style="border: 1px solid #cbd5e1; padding: 4px;" [formGroupName]="colIndex">
+                      <input type="number" formControlName="stock_in_hand" class="cell-input text-center" style="width: 100%; font-size: 12px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; color: #334155; box-sizing: border-box;" placeholder="Stock">
+                    </td>
+                  </ng-container>
+                </ng-container>
+              </tr>
+
+              <!-- ROW 5: Lot No -->
+              <tr>
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Lot No.</td>
+                <ng-container formArrayName="colors">
+                  <ng-container *ngFor="let cg of getColorsFormArray(c).controls; let colIndex = index">
+                    <td style="border: 1px solid #cbd5e1; padding: 4px;" [formGroupName]="colIndex">
+                      <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 4px;" *ngIf="getLotTags(cg.get('lot_no')?.value).length > 0">
+                        <span *ngFor="let tag of getLotTags(cg.get('lot_no')?.value)" style="background: #e2e8f0; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 12px; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                          {{ tag }}
+                          <span style="cursor: pointer; color: #ef4444; font-weight: bold; font-size: 12px;" (click)="removeLotTag($any(cg), tag)">×</span>
+                        </span>
+                      </div>
+                      <input type="text" class="cell-input text-center" style="width: 100%; font-size: 12px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; color: #334155; box-sizing: border-box;" placeholder="Type & Space" (keydown.space)="addLotTag($event, $any(cg))" (keydown.enter)="addLotTag($event, $any(cg))">
+                    </td>
+                  </ng-container>
+                </ng-container>
+              </tr>
+
+              <!-- ROW 6: Yarn to Order -->
+              <tr>
+                <td class="sticky-col-2" style="border: 1px solid #cbd5e1; padding: 8px; background: #f1f5f9; font-weight: bold; font-size: 11px; color: #475569; width: 120px; min-width: 120px; box-sizing: border-box; box-shadow: inset -1px 0 0 #cbd5e1, 2px 0 5px -2px rgba(0,0,0,0.1);">Yarn to Order</td>
+                <ng-container *ngFor="let cg of getColorsFormArray(c).controls; let colIndex = index">
+                  <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;"
+                      [ngStyle]="{'color': getYarnToOrder(c, colIndex) > 0 ? '#dc2626' : '#94a3b8', 'background': getYarnToOrder(c, colIndex) > 0 ? '#fee2e2' : '#f8fafc'}">
+                    {{ getYarnToOrder(c, colIndex) > 0 ? (getYarnToOrder(c, colIndex) | number:'1.1-1') : '-' }}
+                  </td>
+                </ng-container>
+              </tr>
+            </table>
+          </div>
+        </div>
+            </ng-container>
+        </div>
+      </div>
+
+        <!-- ADD CARPET BUTTON & DUPLICATE CHECKBOX -->
+        <div style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 32px; padding: 16px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;">
+      <button mat-raised-button color="primary" type="button" (click)="addCarpet()" style="margin: 0;"><mat-icon>add</mat-icon> Add Carpet</button>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; cursor: pointer;">
+        <input type="checkbox" [(ngModel)]="duplicatePreviousColors" [ngModelOptions]="{standalone: true}" style="cursor: pointer;">
+        Duplicate previous carpet colors
+      </label>
+    </div>
+    
+        <!-- AGGREGATION SUMMARY TABLE -->
+        <div style="margin-top: 24px; width: 400px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <h3 style="margin: 0; font-size: 15px; color: #0f172a;">YARN SUMMARY</h3>
+          <button mat-raised-button color="accent" type="button" style="margin: 0; padding: 0 12px;" (click)="exportExcel()" [disabled]="carpetsFormArray.length === 0"><mat-icon>file_download</mat-icon> Export</button>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <thead>
+            <tr>
+              <th class="header-dark">MATERIAL</th>
+              <th class="header-dark">COLOR CODE</th>
+              <th class="header-dark text-right">TOTAL REQUIRED (KG)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="getSummaryArray().length === 0">
+              <tr>
+                <td colspan="3" class="text-center" style="padding: 12px; color: #94a3b8; font-style: italic;">No colors added to project.</td>
+              </tr>
+            </ng-container>
+
+            <tr *ngFor="let item of getSummaryArray()">
+              <td class="font-bold text-center" 
+                  [ngStyle]="{'background': item.material === 'Wool' ? '#ffedd5' : (item.material === 'Silk' ? '#eff6ff' : '#f5f3ff')}">
+                {{ item.material }}
+              </td>
+              <td class="font-bold text-center">{{ item.code }}</td>
+              <td class="font-bold text-right" style="padding-right: 8px; color: #3730a3;">{{ item.totalKg | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" class="footer-dark text-right font-bold" style="padding-right: 8px;">GRAND TOTAL KG</td>
+              <td class="footer-val font-bold text-right text-blue" style="font-size: 14px; padding-right: 8px; background: #eef2ff;">
+                {{ getProjectTotalKg() | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tfoot>
+          </table>
+        </div>
+    </form>
+  </div>
+
+  <div *ngIf="activeTab === 'saved'" style="padding: 24px; padding-top: 16px;">
+    <h3 style="margin-top: 0; color: #0f172a;">Saved Yarn Sheets</h3>
+    <div *ngIf="savedProjects.length === 0" style="padding: 32px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+      No saved projects yet.
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+      <div *ngFor="let p of savedProjects; let i = index" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 8px;">{{ p.name }}</div>
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Saved: {{ p.date | date:'medium' }}</div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="toolbar-btn primary-btn" style="flex: 1; margin: 0; justify-content: center; font-size: 13px; padding: 6px;" (click)="openProject(p)">Open</button>
+          <button type="button" class="toolbar-btn remove-btn" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; margin: 0; font-size: 13px; padding: 6px 12px;" (click)="deleteProject(i)">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="activeTab === 'settings'" style="padding: 24px; padding-top: 16px;">
+    <h2 style="font-size: 18px; color: #0f172a; margin-bottom: 24px;">Weight Multiplier Settings (Kg per Sqm)</h2>
+    
+    <table style="width: 100%; max-width: 600px; border-collapse: collapse; background: white; border: 1px solid #e2e8f0;">
+      <thead>
+        <tr>
+          <th style="padding: 12px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569; text-align: left;">Quality</th>
+          <th *ngFor="let m of materials" style="padding: 12px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569; text-align: center;">{{ m }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let q of qualities">
+          <td style="padding: 12px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">{{ q }}</td>
+          <td *ngFor="let m of materials" style="padding: 8px; border: 1px solid #cbd5e1;">
+            <input type="number" [(ngModel)]="weightSettings[q][m]" class="cell-input text-center" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div style="margin-top: 24px;">
+      <button type="button" class="toolbar-btn success-btn" (click)="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>

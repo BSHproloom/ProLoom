@@ -10,6 +10,7 @@ import { User } from '../models/user.model';
 export class UserService {
   private usersSubject = new BehaviorSubject<User[]>([]);
   public users$ = this.usersSubject.asObservable();
+  public currentUser$ = new BehaviorSubject<User | null>(null);
   private zone = inject(NgZone);
 
   constructor() {
@@ -26,7 +27,10 @@ export class UserService {
           id: docSnap.id,
           name: data['name'],
           email: data['email'],
-          role: data['role']
+          role: data['role'],
+          password: data['password'],
+          fcmTokens: data['fcmTokens'] || [],
+          allowedTabs: data['allowedTabs']
         });
       });
       
@@ -45,6 +49,30 @@ export class UserService {
     return this.users$;
   }
 
+  async updateUserPassword(userId: string, password: string) {
+    try {
+      const { updateDoc, doc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'users', userId), {
+        password: password
+      });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw error;
+    }
+  }
+
+  async updateUserAllowedTabs(userId: string, tabs: string[]) {
+    try {
+      const { updateDoc, doc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'users', userId), {
+        allowedTabs: tabs
+      });
+    } catch (error) {
+      console.error('Error updating allowed tabs:', error);
+      throw error;
+    }
+  }
+
   async addUser(user: User) {
     try {
       await addDoc(collection(db, 'users'), user);
@@ -60,6 +88,24 @@ export class UserService {
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
+    }
+  }
+
+  async saveFcmToken(userId: string, token: string) {
+    try {
+      const { doc, getDoc, updateDoc, arrayUnion } = await import('firebase/firestore');
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const tokens = userSnap.data()['fcmTokens'] || [];
+        if (!tokens.includes(token)) {
+          await updateDoc(userRef, {
+            fcmTokens: arrayUnion(token)
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error saving FCM token:', error);
     }
   }
 }

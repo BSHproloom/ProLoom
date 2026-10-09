@@ -1,63 +1,123 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
-import { Project, Carpet, ProjectService, UserService } from 'shared-core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ProjectViewModel, Carpet, ProjectService, UserService, CarpetService, User, NotificationBellComponent, FileViewerDialogComponent } from 'shared-core';
 
-interface ProjectViewModel extends Project {
+interface AmProjectViewModel extends ProjectViewModel {
   carpets: Carpet[];
 }
-
-const MOCK_CARPETS: any[] = [
-  { id: 'SKU-001', project_fk: 'P-12601', composite_item_name: 'Lobby Main Rug', size: '10x15', quality: 'ht-850', no_of_rugs: 1, designer: 'Alice', yarn_sheet_status: 'Approved', status: 'In Production', is_working: false, time_spent_seconds: 3600, designer_readiness_date: new Date('2026-06-05') },
-  { id: 'SKU-002', project_fk: 'P-12601', composite_item_name: 'Lobby Corridor', size: '5x20', quality: 'ht-850', no_of_rugs: 4, designer: 'Alice', yarn_sheet_status: 'Ready', status: 'In Progress', is_working: true, time_spent_seconds: 1800, designer_readiness_date: new Date('2026-06-10') },
-  { id: 'SKU-003', project_fk: 'P-12603', composite_item_name: 'Suite Master', size: '20x30', quality: 'ht-650', no_of_rugs: 1, designer: 'Bob', yarn_sheet_status: 'Sourcing', status: 'Need to Assign', is_working: false, time_spent_seconds: 0, designer_readiness_date: null }
-];
 
 @Component({
   selector: 'app-am-projects',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatExpansionModule, MatIconModule, FormsModule],
+  imports: [
+    CommonModule, 
+    MatTableModule, 
+    MatButtonModule, 
+    MatExpansionModule, 
+    MatIconModule, 
+    FormsModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    NotificationBellComponent,
+    MatDialogModule,
+    FileViewerDialogComponent
+  ],
   templateUrl: './am-projects.html',
   styleUrl: './am-projects.css',
 })
-export class AmProjects {
+export class AmProjects implements OnInit {
   
-  allProjects: any[] = [];
-  projects: any[] = [];
+  allProjects: AmProjectViewModel[] = [];
+  projects: AmProjectViewModel[] = [];
+  allCarpets: Carpet[] = [];
   
-  ams: string[] = ['Unassigned'];
-  currentAm = 'Unassigned';
+  ams: User[] = [];
+  currentAm: User | null = null;
   
-  carpetColumns = ['name_sku', 'status', 'readiness_date'];
+  carpetColumns = ['name_sku', 'status', 'designer', 'readiness_date', 'actions'];
 
-  constructor(private ps: ProjectService, private userService: UserService) {
-    this.userService.getUsers().subscribe(users => {
-      this.ams = users.filter(u => u.role === 'AM').map(u => u.name);
-      if (!this.ams.includes('Unassigned')) {
-        this.ams.push('Unassigned');
+  private dialog = inject(MatDialog);
+
+  hasFiles(carpet: Carpet): boolean {
+    return !!carpet.files && Object.keys(carpet.files).length > 0;
+  }
+
+  viewFiles(carpet: Carpet) {
+    this.dialog.open(FileViewerDialogComponent, {
+      data: { 
+        files: carpet.files,
+        remark: carpet.designer_remark
+      },
+      width: '80vw',
+      height: '80vh',
+      maxWidth: '1200px'
+    });
+  }
+
+  private ps = inject(ProjectService);
+  private userService = inject(UserService);
+  private carpetService = inject(CarpetService);
+  private cdr = inject(ChangeDetectorRef);
+
+  ngOnInit() {
+    const ls = localStorage.getItem('current_am');
+    if (ls) {
+      try {
+        const parsed = JSON.parse(ls);
+        this.currentAm = parsed;
+      } catch (e) {
+        localStorage.removeItem('current_am');
       }
-      
-      // Auto-select the first real AM if currently 'Unassigned' and real AMs exist
-      if (this.currentAm === 'Unassigned' && this.ams.length > 1) {
-        this.currentAm = this.ams[0];
+    }
+
+    this.userService.getUsers().subscribe(users => {
+      this.ams = users.filter(u => u.role === 'AM');
+      if (this.currentAm) {
+        const actualAm = this.ams.find(a => a.name === this.currentAm!.name);
+        if (actualAm) {
+          this.currentAm = actualAm;
+        }
       }
       this.filterProjects();
+    });
+
+    this.carpetService.getAllCarpets().subscribe(carpets => {
+      this.allCarpets = carpets;
+      this.mapCarpetsToProjects();
     });
 
     this.ps.getProjects().subscribe(projects => {
       this.allProjects = projects.map(p => ({
         ...p,
-        carpets: MOCK_CARPETS.filter(c => c.project_fk === p.id)
+        carpets: []
       }));
-      this.filterProjects();
+      this.mapCarpetsToProjects();
     });
   }
 
+  mapCarpetsToProjects() {
+    this.allProjects = this.allProjects.map(p => ({
+      ...p,
+      carpets: this.allCarpets.filter(c => c.project_fk === p.id)
+    }));
+    this.filterProjects();
+  }
+
   filterProjects() {
-    this.projects = this.allProjects.filter(p => p.am === this.currentAm);
+    if (this.currentAm) {
+      this.projects = this.allProjects.filter(p => p.am === this.currentAm!.name);
+    } else {
+      this.projects = [];
+    }
+    this.cdr.detectChanges();
   }
 }
+

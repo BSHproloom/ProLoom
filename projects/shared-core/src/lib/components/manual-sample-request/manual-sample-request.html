@@ -1,0 +1,138 @@
+<div class="page-container">
+  <div class="header">
+    <h1>Manual Sample Requests</h1>
+    <p>Submit and manage standalone sample requests.</p>
+  </div>
+
+  <div class="content-grid">
+    <!-- SUBMISSION FORM (Only for Designers / Admins) -->
+    <mat-card class="form-card" *ngIf="currentApp !== 'production'">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>add_circle_outline</mat-icon>
+        <mat-card-title>New Request</mat-card-title>
+        <mat-card-subtitle>Fill out the details below to generate a PDF and submit.</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Client / Company Name</mat-label>
+            <input matInput [(ngModel)]="clientName" placeholder="e.g. Marriott Hotels">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Project Name</mat-label>
+            <input matInput [(ngModel)]="projectName" placeholder="e.g. Lobby Renovation">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Size</mat-label>
+            <mat-select [(ngModel)]="sampleSize">
+              <mat-option *ngFor="let size of sampleSizes" [value]="size">{{size}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Material</mat-label>
+            <mat-select [(ngModel)]="sampleMaterial">
+              <mat-option *ngFor="let m of sampleMaterials" [value]="m">{{m}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Construction</mat-label>
+            <mat-select [(ngModel)]="sampleConstruction">
+              <mat-option *ngFor="let c of sampleConstructions" [value]="c">{{c}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Finishing / Special Instructions</mat-label>
+          <textarea matInput [(ngModel)]="sampleInstructions" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-divider></mat-divider>
+        <h3 class="section-title">Upload Files</h3>
+
+        <!-- Main Artwork Drop Zone -->
+        <div class="file-upload-container">
+          <div class="drop-zone" 
+               [class.drag-over]="isDragging['main']"
+               (dragover)="onDragOver($event, 'main')"
+               (dragleave)="onDragLeave($event, 'main')"
+               (drop)="onDrop($event, 'main')"
+               (click)="mainFileInput.click()"
+               style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f8fafc; margin-bottom: 24px;">
+            <mat-icon style="font-size: 32px; width: 32px; height: 32px; color: #94a3b8; margin-bottom: 8px;">cloud_upload</mat-icon>
+            <p style="margin: 0; color: #64748b; font-size: 14px;">Drag and drop main artwork file here or click to browse.</p>
+            <input type="file" #mainFileInput (change)="onFileSelect($event, 'main')" style="display: none;">
+            <div *ngIf="selectedFiles['main']" style="margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; background: #e0e7ff; color: #4338ca; padding: 8px 12px; border-radius: 16px; font-size: 13px; font-weight: 500;">
+              <mat-icon style="font-size: 18px; width: 18px; height: 18px;">description</mat-icon>
+              <span>{{ selectedFiles['main'].name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-container" *ngIf="isSubmitting">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+          </div>
+          <p>{{ uploadProgress < 80 ? 'Uploading Files...' : (uploadProgress < 95 ? 'Generating PDF...' : 'Finalizing...') }} {{ uploadProgress }}%</p>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <button mat-flat-button color="primary" class="submit-btn" [disabled]="!canSubmit() || isSubmitting" (click)="submitSample()">
+          <mat-icon>send</mat-icon>
+          Submit Request
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- LIST VIEW (For All Apps) -->
+    <mat-card class="list-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>view_list</mat-icon>
+        <mat-card-title>Previous Requests</mat-card-title>
+        <mat-card-subtitle *ngIf="currentApp === 'production'">Highlighted items are newly uploaded.</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="empty-state" *ngIf="samples.length === 0">
+          No manual sample requests found.
+        </div>
+        <div class="request-list">
+          <div class="request-item" *ngFor="let s of samples">
+            <div class="item-header">
+              <div class="item-title">
+                <span class="ref">{{ s.carpet_fk }}</span>
+                <h3>{{ s.project_name }} ({{ s.client_name }})</h3>
+              </div>
+              <span class="status-badge" [class]="s.status.toLowerCase().replace(' ', '-')">{{ s.status }}</span>
+            </div>
+            
+            <div class="item-details">
+              <span><strong>Designer:</strong> {{ s.designer_name }}</span>
+              <span><strong>Size:</strong> {{ s.sample_size }}</span>
+              <span><strong>Mat/Const:</strong> {{ s.sample_material }} / {{ s.sample_construction }}</span>
+            </div>
+
+            <mat-divider></mat-divider>
+            
+            <div class="item-files">
+              <a *ngIf="s.pdf_url" [href]="s.pdf_url" target="_blank" class="pdf-link">
+                <mat-icon>picture_as_pdf</mat-icon> Download Form
+              </a>
+              <div class="uploaded-files">
+                <a *ngFor="let f of s.file_uploads" [href]="f.url" target="_blank" class="file-link" [class.highlight]="currentApp === 'production' && isNewFile(f.uploaded_at)">
+                  <mat-icon>attachment</mat-icon> {{ f.key }} 
+                  <span class="date-info">(Uploaded: {{ f.uploaded_at | date:'short' }})</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

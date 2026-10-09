@@ -1,0 +1,42 @@
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0;">To Do List (Pending Information)</h1>
+    <p style="color: #6b7280; margin-top: 4px;">Gather pending missing information for projects.</p>
+  </div>
+
+  <mat-card style="border-radius: 12px; border-top: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <mat-card-content style="padding: 0;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <tr>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Client</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project Name</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Missing Information</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let element of pendingTasks" style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" class="hover:bg-gray-50">
+            <td style="padding: 16px 24px; color: #4b5563;">{{element.client}}</td>
+            <td style="padding: 16px 24px; font-weight: 600; color: #1f2937;">{{element.projectName}}</td>
+            <td style="padding: 16px 24px;">
+              <ul style="margin: 0; padding-left: 16px;">
+                <li *ngFor="let info of element.missingInfo" style="color: #ef4444; font-weight: 500;">{{info}}</li>
+              </ul>
+            </td>
+            <td style="padding: 16px 24px; text-align: right;">
+              <a mat-button color="primary" [routerLink]="['/project', element.projectId]" style="border-radius: 9999px;">
+                View Project
+              </a>
+            </td>
+          </tr>
+          <tr *ngIf="pendingTasks.length === 0">
+            <td colspan="4" style="padding: 48px; text-align: center; color: #6b7280;">
+              No pending tasks found. All active projects have complete information!
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

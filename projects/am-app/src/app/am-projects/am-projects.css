@@ -21,7 +21,16 @@
   border-bottom-style: solid;
 }
 
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .greeting-header {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 16px;

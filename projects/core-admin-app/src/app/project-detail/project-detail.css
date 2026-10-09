@@ -73,3 +73,34 @@ table {
 .status-badge.assigned { background-color: #e8eaf6; color: #283593; }
 .status-badge.review-pending { background-color: #fff3e0; color: #ef6c00; }
 .status-badge.sent-to-am { background-color: #e8f5e9; color: #2e7d32; }
+
+.status-badge.sent-for-approval { background: #e0f2fe; color: #0284c7; }
+.status-badge.approved { background: #dcfce7; color: #15803d; }
+.status-badge.rejected { background: #fee2e2; color: #b91c1c; }
+.status-badge.in-production { background: #fef9c3; color: #a16207; }
+.status-badge.shipped { background: #f1f5f9; color: #475569; }
+
+.compact-dropdown {
+  width: 150px;
+}
+
+.compact-dropdown ::ng-deep .mat-mdc-text-field-wrapper {
+  height: 36px !important;
+  padding: 0 8px !important;
+}
+
+.compact-dropdown ::ng-deep .mat-mdc-form-field-flex {
+  height: 36px !important;
+  align-items: center;
+}
+
+.compact-dropdown ::ng-deep .mat-mdc-form-field-infix {
+  padding: 0 !important;
+  min-height: 36px !important;
+  display: flex;
+  align-items: center;
+}
+
+.compact-dropdown ::ng-deep .mdc-line-ripple {
+  display: none !important;
+}

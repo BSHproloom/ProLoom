@@ -4,13 +4,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../services/notification.service';
 import { Notification as AppNotification } from '../../models/notification.model';
 
 @Component({
   selector: 'lib-notification-bell',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatBadgeModule, MatButtonModule, MatMenuModule],
+  imports: [CommonModule, MatIconModule, MatBadgeModule, MatButtonModule, MatMenuModule, MatSnackBarModule],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="bell-button">
       <mat-icon [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn">
@@ -60,6 +61,7 @@ export class NotificationBellComponent implements OnInit, OnChanges {
   @Input() recipientRole?: string;
 
   private notifService = inject(NotificationService);
+  private snackBar = inject(MatSnackBar);
   
   notifications: AppNotification[] = [];
   unreadCount = 0;
@@ -75,30 +77,62 @@ export class NotificationBellComponent implements OnInit, OnChanges {
   }
 
   loadNotifications() {
-    if (this.recipientEmail) {
-      this.notifService.getUserNotifications(this.recipientEmail).subscribe(notifs => {
-        this.notifications = notifs;
-        this.unreadCount = notifs.filter(n => !n.read_status).length;
-        this.triggerBrowserPush(notifs);
+    import('rxjs').then(({ combineLatest, of }) => {
+      const email$ = this.recipientEmail ? this.notifService.getUserNotifications(this.recipientEmail) : of([]);
+      const role$ = this.recipientRole ? this.notifService.getRoleNotifications(this.recipientRole) : of([]);
+      
+      combineLatest([email$, role$]).subscribe(([emailNotifs, roleNotifs]) => {
+        // Merge and sort
+        const merged = [...emailNotifs, ...roleNotifs];
+        // Remove duplicates by ID in case any overlap somehow
+        const unique = merged.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+        // Sort descending
+        unique.sort((a, b) => {
+          const timeA = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : new Date(a.timestamp).getTime();
+          const timeB = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : new Date(b.timestamp).getTime();
+          return timeB - timeA;
+        });
+
+        this.notifications = unique;
+        this.unreadCount = unique.filter(n => !n.read_status).length;
+        this.triggerBrowserPush(unique);
       });
-    }
+    });
   }
 
   // Simple tracking array to prevent duplicate push notifications per session
   private pushedNotifIds = new Set<string>();
 
   triggerBrowserPush(notifs: AppNotification[]) {
-    if (!('Notification' in window)) return;
-    if (Notification.permission !== 'granted') return;
+    const now = new Date().getTime();
+    const unread = notifs.filter(n => {
+      if (n.read_status) return false;
+      
+      // Prevent spamming old unread notifications on page reload
+      // Only push notifications created in the last 2 minutes
+      const notifTime = n.timestamp.toDate ? n.timestamp.toDate().getTime() : new Date(n.timestamp).getTime();
+      const isRecent = (now - notifTime) < (2 * 60 * 1000);
+      return isRecent;
+    });
 
-    const unread = notifs.filter(n => !n.read_status);
     unread.forEach(n => {
       if (n.id && !this.pushedNotifIds.has(n.id)) {
         this.pushedNotifIds.add(n.id);
-        new Notification('ProLoom Update', {
-          body: n.message,
-          icon: '/logo.png' // App public folder
+        
+        // Show in-app snackbar alert
+        this.snackBar.open(n.message, 'Close', {
+          duration: 6000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
         });
+
+        // Show OS-level notification if permitted
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('ProLoom Update', {
+            body: n.message,
+            icon: '/logo.png' // App public folder
+          });
+        }
       }
     });
   }

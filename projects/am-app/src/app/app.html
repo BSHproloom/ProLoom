@@ -1,22 +1,41 @@
-<div class="app-container">
-  
-  <main class="main-content">
-    <router-outlet></router-outlet>
-  </main>
+<ng-container *ngIf="currentAm; else loginScreen">
+  <div class="app-container">
+    <header class="modern-topbar" style="display: flex; align-items: center; padding: 0 16px; height: 64px; background: #fff; border-bottom: 1px solid #e0e0e0;">
+      <mat-icon style="color: #00796b; margin-right: 8px;">account_circle</mat-icon>
+      <span style="font-weight: 500; font-size: 1.1rem; color: #333;">AM Portal</span>
+      <span style="flex: 1"></span>
+      <lib-notification-bell *ngIf="currentAm" [recipientEmail]="currentAm.email" [recipientRole]="'AM'"></lib-notification-bell>
+    </header>
+    
+    <main class="main-content" style="height: calc(100vh - 120px); overflow-y: auto;">
+      <router-outlet></router-outlet>
+    </main>
 
-  <nav class="bottom-nav mat-elevation-z4">
-    <a routerLink="/am-projects" routerLinkActive="active-nav">
-      <mat-icon>insert_chart_outlined</mat-icon>
-      <span>Projects Status</span>
-    </a>
-    <a routerLink="/production" routerLinkActive="active-nav">
-      <mat-icon>precision_manufacturing</mat-icon>
-      <span>Production</span>
-    </a>
-    <a routerLink="/samples" routerLinkActive="active-nav">
-      <mat-icon>science</mat-icon>
-      <span>Control Samples</span>
-    </a>
-  </nav>
+    <nav class="bottom-nav mat-elevation-z4">
+      <a routerLink="/am-projects" routerLinkActive="active-nav">
+        <mat-icon>insert_chart_outlined</mat-icon>
+        <span>Projects Status</span>
+      </a>
+      <a routerLink="/production" routerLinkActive="active-nav">
+        <mat-icon>precision_manufacturing</mat-icon>
+        <span>Production</span>
+      </a>
+      <a routerLink="/samples" routerLinkActive="active-nav">
+        <mat-icon>science</mat-icon>
+        <span>Samples</span>
+      </a>
+      <a routerLink="/assets" routerLinkActive="active-nav">
+        <mat-icon>folder_shared</mat-icon>
+        <span>Assets</span>
+      </a>
+      <a (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </a>
+    </nav>
+  </div>
+</ng-container>
 
-</div>
+<ng-template #loginScreen>
+  <lib-login role="Account Manager" [errorMsg]="loginError" (microsoftLogin)="onMicrosoftLoginSubmit($event)"></lib-login>
+</ng-template>

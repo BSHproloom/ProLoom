@@ -1,0 +1,60 @@
+.reports-container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+}
+
+.tab-content {
+  padding: 24px 0;
+}
+
+.table-wrapper {
+  background: white;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-header-cell {
+  background-color: #f5f5f5;
+  color: #333;
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 12px 16px;
+}
+
+td.mat-cell {
+  padding: 12px 16px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+/* Status colors */
+.status-badge.in-progress { background-color: #e3f2fd; color: #1976d2; }
+.status-badge.need-to-assign { background-color: #ffebee; color: #d32f2f; }
+.status-badge.assigned { background-color: #fff3e0; color: #f57c00; }
+.status-badge.review-pending { background-color: #fff8e1; color: #ffa000; }
+.status-badge.sent-to-am { background-color: #e8f5e9; color: #388e3c; }
+.status-badge.revision-needed { background-color: #fce4ec; color: #c2185b; }

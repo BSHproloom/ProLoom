@@ -1,0 +1,146 @@
+<div class="page-container">
+  <div style="margin-bottom: 32px;">
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+      <h2 style="margin: 0; color: #1e293b;">Active Production Floor</h2>
+      <span class="count-badge">{{ activeCarpets.length }} Active</span>
+    </div>
+    
+    <mat-card class="mat-elevation-z2 table-card">
+      <table mat-table [dataSource]="activeCarpets">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef> ID </th>
+          <td mat-cell *matCellDef="let element"> <strong>{{element.id}}</strong> </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Item Name </th>
+          <td mat-cell *matCellDef="let element"> {{element.composite_item_name}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+          <th mat-header-cell *matHeaderCellDef> Size </th>
+          <td mat-cell *matCellDef="let element"> {{element.size}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef> Type </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="type-badge" *ngIf="element.id.includes('-Sample')">Sample</span>
+            <span class="type-badge final" *ngIf="element.id.includes('-ProdFile')">Final</span>
+            <span class="type-badge" *ngIf="!element.id.includes('-')">Carpet</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef> Status </th>
+          <td mat-cell *matCellDef="let element"> 
+            <span class="status-badge" [ngClass]="element.status.replace(' ', '-').toLowerCase()">
+              {{element.status}}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="dates">
+          <th mat-header-cell *matHeaderCellDef> Est. Completion </th>
+          <td mat-cell *matCellDef="let element" style="font-size: 13px;"> 
+            <div *ngIf="element.estimated_tufting_date">
+              <strong style="color: #64748b;">Tufting:</strong> {{ element.estimated_tufting_date?.toDate ? (element.estimated_tufting_date.toDate() | date:'shortDate') : (element.estimated_tufting_date | date:'shortDate') }}
+            </div>
+            <div *ngIf="element.estimated_finishing_date">
+              <strong style="color: #64748b;">Finishing:</strong> {{ element.estimated_finishing_date?.toDate ? (element.estimated_finishing_date.toDate() | date:'shortDate') : (element.estimated_finishing_date | date:'shortDate') }}
+            </div>
+            <div *ngIf="!element.estimated_tufting_date && !element.estimated_finishing_date" style="color: #94a3b8; font-style: italic;">
+              Not set
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let element" style="display: flex; gap: 8px; flex-direction: column; padding: 12px 0;">
+            <button mat-stroked-button color="primary" (click)="openUpdateDialog(element)">
+              Update Status
+            </button>
+            <button mat-stroked-button color="warn" (click)="requestFileRevision(element)" title="Untuftable file? Request revision from SC.">
+              Reject File
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      
+      <div class="empty-state" *ngIf="activeCarpets.length === 0">
+        No carpets are currently on the production floor.
+      </div>
+    </mat-card>
+  </div>
+
+
+  <div>
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+      <h2 style="margin: 0; color: #1e293b;">Pending Queue</h2>
+      <span class="count-badge gray">{{ pendingCarpets.length }} Pending</span>
+    </div>
+    
+    <mat-card class="mat-elevation-z2 table-card">
+      <table mat-table [dataSource]="pendingCarpets">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef> ID </th>
+          <td mat-cell *matCellDef="let element"> <strong>{{element.id}}</strong> </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Item Name </th>
+          <td mat-cell *matCellDef="let element"> {{element.composite_item_name}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+          <th mat-header-cell *matHeaderCellDef> Size </th>
+          <td mat-cell *matCellDef="let element"> {{element.size}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef> Type </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="type-badge" *ngIf="element.id.includes('-Sample')">Sample</span>
+            <span class="type-badge final" *ngIf="element.id.includes('-ProdFile')">Final</span>
+            <span class="type-badge" *ngIf="!element.id.includes('-')">Carpet</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef> Status </th>
+          <td mat-cell *matCellDef="let element"> 
+            <span class="status-badge pending">Assigned</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="dates">
+          <th mat-header-cell *matHeaderCellDef> Est. Completion </th>
+          <td mat-cell *matCellDef="let element">
+            <span style="color: #94a3b8; font-style: italic;">Not started</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-flat-button color="primary" (click)="startProduction(element)">
+              Start Tufting
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      
+      <div class="empty-state" *ngIf="pendingCarpets.length === 0">
+        No pending jobs waiting to start.
+      </div>
+    </mat-card>
+  </div>
+
+</div>

@@ -3,3 +3,19 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Side Panel Animation */
+.slide-in-dialog {
+  animation: slideInRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.slide-in-dialog .mat-mdc-dialog-container {
+  border-radius: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}

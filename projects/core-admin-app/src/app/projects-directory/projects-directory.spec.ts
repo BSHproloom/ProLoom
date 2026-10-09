@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ProjectsDirectory } from './projects-directory';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('ProjectsDirectory', () => {
-  let component: ProjectsDirectory;
-  let fixture: ComponentFixture<ProjectsDirectory>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ProjectsDirectory],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ProjectsDirectory);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(ProjectsDirectory);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(ProjectsDirectory);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

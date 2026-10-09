@@ -1,0 +1,66 @@
+.samples-container {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.sent-to-am { background: #e0e7ff; color: #4338ca; }
+.status-badge.approved { background: #dcfce7; color: #15803d; }
+
+.project-panel {
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  border-radius: 8px !important;
+}
+
+.project-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.client-badge {
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.selected-row {
+  background-color: #f8fafc;
+}
+
+

@@ -1,0 +1,42 @@
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0;">Loom Management</h1>
+    <p style="color: #6b7280; margin-top: 4px;">30-Day Loom Forecast</p>
+  </div>
+
+  <mat-card class="aesthetic-card" style="border-top: 4px solid #3b82f6;">
+    <mat-card-header style="padding-bottom: 16px; border-bottom: 1px solid #f3f4f6;">
+      <div mat-card-avatar style="background-color: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 40px; height: 40px;">
+        <mat-icon>calendar_view_week</mat-icon>
+      </div>
+      <mat-card-title style="font-size: 18px; font-weight: bold; margin-left: 8px;">30-Day Loom Forecast</mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="padding-top: 16px; overflow-x: auto;">
+      <div class="loom-matrix">
+        <div class="loom-row header-row">
+          <div class="loom-label">Loom</div>
+          <div class="timeline-container">
+            <div class="day-header" *ngFor="let day of forecastDays">
+              {{day.date.getDate()}}/{{day.date.getMonth()+1}}
+            </div>
+          </div>
+        </div>
+        
+        <div class="loom-row" *ngFor="let loomId of [1,2,3,4,5,6,7,8,9,10,11,12]">
+          <div class="loom-label" style="font-weight: 500; color: #374151;">Loom {{loomId}}</div>
+          <div class="timeline-container relative" style="background-color: #f9fafb; border-radius: 0 6px 6px 0; border: 1px solid #e5e7eb; border-left: none;">
+            <div class="grid-line" *ngFor="let day of forecastDays"></div>
+            
+            <div class="scheduled-carpet absolute" style="background-color: #3b82f6; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                 *ngFor="let run of getRunsForLoom(loomId)"
+                 [style.left]="run.leftPercentage + '%'"
+                 [style.width]="run.widthPercentage + '%'"
+                 [title]="run.carpet.composite_item_name + ' (Est. End: ' + formatDate(run.carpet.loom_end_date) + ')'">
+              {{run.carpet.composite_item_name}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

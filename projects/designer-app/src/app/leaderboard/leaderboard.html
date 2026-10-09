@@ -1,0 +1,57 @@
+<div class="leaderboard-container" style="position: relative; overflow: hidden; min-height: 100vh;">
+  <!-- Celebration Popup -->
+  <div *ngIf="showCelebration" class="celebration-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.5s;">
+    <div style="font-size: 80px; animation: bounce 1s infinite;">🎉🏆🎉</div>
+    <h1 style="color: #FFD700; font-size: 48px; text-align: center; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); animation: zoomIn 0.5s;">{{recordMessage}}</h1>
+    <p style="color: white; font-size: 24px; animation: fadeIn 2s;">Amazing work! You've broken the all-time record!</p>
+  </div>
+
+  <div class="header-section">
+    <h2><mat-icon inline style="font-size: 32px; height: 32px; width: 32px; vertical-align: middle; color: #d4af37; margin-right: 8px;">emoji_events</mat-icon> Designer Leaderboard</h2>
+    <p>Ranked by number of completed artworks.</p>
+  </div>
+
+  <div *ngIf="!loading && currentRecordHolder" class="record-banner" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: white; padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align: center; box-shadow: 0 4px 15px rgba(255, 165, 0, 0.3);">
+    <mat-icon inline style="font-size: 24px; vertical-align: middle; margin-right: 8px;">star</mat-icon>
+    <strong style="font-size: 18px;">All-Time Record Holder: {{currentRecordHolder}} ({{currentRecordScore}} Artworks)</strong>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <p>Loading rankings...</p>
+  </div>
+
+  <mat-card class="leaderboard-card" *ngIf="!loading">
+    <div class="leaderboard-list">
+      <div *ngFor="let entry of leaderboard; let last = last" class="leaderboard-item" 
+           [class.top-three]="entry.rank <= 3" 
+           [ngStyle]="{'background': entry.designer.name === currentRecordHolder ? 'rgba(255, 215, 0, 0.1)' : 'transparent', 'border': entry.designer.name === currentRecordHolder ? '2px solid #FFD700' : 'none'}">
+        
+        <div class="entry-content">
+          <div class="rank-badge" [ngClass]="'rank-' + entry.rank">
+            <span *ngIf="entry.rank > 1">#{{entry.rank}}</span>
+            <mat-icon *ngIf="entry.rank === 1" style="color: gold;">star</mat-icon>
+          </div>
+          
+          <div class="designer-info">
+            <mat-icon class="avatar-icon">account_circle</mat-icon>
+            <span class="designer-name">
+              {{entry.designer.name}} 
+              <mat-icon *ngIf="entry.designer.name === currentRecordHolder" inline style="color: #FFD700; font-size: 16px; margin-left: 4px;" title="Current Record Holder">workspace_premium</mat-icon>
+            </span>
+          </div>
+
+          <div class="score">
+            <span class="score-number">{{entry.completedArtworks}}</span>
+            <span class="score-label">Artworks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</div>
+
+<style>
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+@keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>

@@ -1,0 +1,72 @@
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0;">Upcoming Job Orders</h1>
+    <p style="color: #6b7280; margin-top: 4px;">Overview of all projects, their stages, and SQM.</p>
+  </div>
+
+  <mat-card style="border-radius: 12px; border-top: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <mat-card-content style="padding: 0;">
+      <div *ngIf="isLoading" style="padding: 24px; text-align: center; color: #6b7280;">Loading...</div>
+      
+      <table *ngIf="!isLoading" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <tr>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project ID</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project Name</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Client</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Stage</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563; text-align: right;">Total SQM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let order of jobOrders">
+            <!-- Project Row -->
+            <tr style="border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.2s;" (click)="toggleExpand(order)" [style.background]="order.expanded ? '#f8fafc' : '#ffffff'" class="hover:bg-gray-50">
+              <td style="padding: 16px 24px; font-weight: 500; color: #2563eb;">
+                <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px; margin-right: 8px;">
+                  {{order.expanded ? 'expand_more' : 'chevron_right'}}
+                </mat-icon>
+                {{order.project_id}}
+              </td>
+              <td style="padding: 16px 24px; font-weight: 600; color: #1f2937;">{{order.project_name}}</td>
+              <td style="padding: 16px 24px; color: #4b5563;">{{order.client}}</td>
+              <td style="padding: 16px 24px;">
+                <span style="background-color: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500;">{{order.status}}</span>
+              </td>
+              <td style="padding: 16px 24px; text-align: right; font-weight: 600; color: #111827;">{{order.total_sqm | number:'1.2-2'}} m²</td>
+            </tr>
+            <!-- Expanded Carpets Detail -->
+            <tr *ngIf="order.expanded" style="background-color: #f8fafc;">
+              <td colspan="5" style="padding: 0;">
+                <div style="padding: 16px 24px 24px 64px; border-bottom: 1px solid #e5e7eb;">
+                  <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Carpet Breakdown</h4>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead style="border-bottom: 1px solid #e5e7eb;">
+                      <tr>
+                        <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Carpet ID</th>
+                        <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Name</th>
+                        <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Status</th>
+                        <th style="padding: 8px; text-align: right; color: #6b7280; font-weight: 500;">Size (SQM)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let carpet of order.carpets" style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 8px; color: #4b5563;">{{carpet.id}}</td>
+                        <td style="padding: 8px; color: #111827; font-weight: 500;">{{carpet.composite_item_name}}</td>
+                        <td style="padding: 8px; color: #4b5563;">{{carpet.status}}</td>
+                        <td style="padding: 8px; text-align: right; color: #111827;">{{(carpet.area || 0) * (carpet.no_of_rugs || 1) | number:'1.2-2'}} m²</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="jobOrders.length === 0 && !isLoading">
+            <td colspan="5" style="padding: 48px; text-align: center; color: #6b7280;">No active projects found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

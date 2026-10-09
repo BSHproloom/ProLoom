@@ -1,0 +1,136 @@
+.modern-topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+}
+
+.brand-icon {
+  color: #2563eb;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.025em;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.sidenav-container {
+  position: absolute;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f8fafc;
+}
+
+.sidenav {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+.content {
+  padding: 24px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.active-link {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+  font-weight: 500;
+  border-right: 3px solid #2563eb;
+}
+
+.active-link mat-icon {
+  color: #2563eb !important;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  display: none; /* Hidden on desktop */
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .menu-btn {
+    display: none !important;
+  }
+  .sidenav {
+    display: none !important;
+  }
+  .sidenav-container {
+    margin-left: 0 !important;
+  }
+  .content {
+    padding-bottom: 80px; /* Space for bottom nav */
+  }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: white;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 11px;
+    gap: 4px;
+    padding: 8px 0;
+    width: 100%;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav a mat-icon {
+    margin-bottom: 2px;
+  }
+
+  .bottom-nav a.active-nav {
+    color: #2563eb;
+    font-weight: 500;
+  }
+
+  .bottom-nav a.active-nav mat-icon {
+    transform: scale(1.1);
+  }
+}

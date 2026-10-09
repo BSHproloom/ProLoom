@@ -1,0 +1,261 @@
+<div class="samples-container">
+  <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b;">Samples Stage</h2>
+      <p style="margin: 4px 0 0; color: #64748b;">Review and request samples for production.</p>
+    </div>
+    <button mat-flat-button color="primary" routerLink="/sample-request">
+      <mat-icon>add</mat-icon> New Sample Request
+    </button>
+  </div>
+
+  <div *ngIf="loading" style="padding: 40px; text-align: center;">
+    Loading samples...
+  </div>
+
+  <div *ngIf="!loading && pendingProjectGroups.length === 0 && readyProjectGroups.length === 0" style="padding: 40px; text-align: center; color: #64748b;">
+    No carpets in sample stage.
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Section 1: Pending Review -->
+    <mat-card class="section-container" *ngIf="pendingProjectGroups.length > 0" style="margin-bottom: 24px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div class="section-header" style="background: #f8fafc; padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+        <h3 class="highlight-review" style="margin: 0; color: #0f172a; font-size: 16px;"><mat-icon inline style="vertical-align: middle; margin-right: 8px; color: #f59e0b;">fact_check</mat-icon>Pending Review ({{ pendingCount }})</h3>
+      </div>
+      
+      <div class="list-wrapper" style="padding: 16px;">
+        <mat-accordion multi class="seamless-accordion" style="display: block; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff;">
+          <mat-expansion-panel *ngFor="let group of pendingProjectGroups; let last = last" class="review-item project-group-panel" [ngStyle]="{'border-bottom': last ? 'none' : '1px solid #e2e8f0'}" style="border-radius: 0; margin-bottom: 0; background: #fff; box-shadow: none;">
+            <mat-expansion-panel-header style="padding: 16px 24px; height: auto !important; min-height: 64px;">
+              <mat-panel-title style="margin: 0;">
+                <div style="display: flex; align-items: center;">
+                  <span style="font-weight: 600; font-size: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    {{ group.project.project_name }} 
+                    <span style="font-weight: normal; color: #64748b;">| {{ group.project.client_name }}</span>
+                  </span>
+                </div>
+              </mat-panel-title>
+              <mat-panel-description style="display: flex; align-items: center; justify-content: flex-end; color: #0369a1; font-weight: 500; margin: 0; padding-right: 16px;">
+                {{ group.carpets.length }} sample(s) pending
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div style="padding: 16px 24px 24px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+              <div *ngFor="let carpet of group.carpets" style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 16px; margin-bottom: 16px; background: #fff; display: flex; gap: 16px;">
+                <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                  <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <div class="item-title" style="margin: 0; font-weight: 600; font-size: 16px; color: #1e293b;">{{carpet.composite_item_name}} <span class="item-id" style="color:#64748b; font-size: 14px;">({{carpet.id}})</span></div>
+                    <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;"><strong>Designer:</strong> {{carpet.designer}}</div>
+                  </div>
+
+                  <!-- Show differences if any -->
+                  <div style="font-size: 13px; margin-bottom: 16px; display:flex; gap:24px; background: #f1f5f9; padding: 12px; border-radius: 6px;">
+                    <div><strong style="color: #475569;">Size:</strong> {{carpet.sample_size || carpet.size}}</div>
+                    
+                    <div>
+                      <strong style="color: #475569;">Construction:</strong> {{carpet.sample_construction || carpet.quality}}
+                      <mat-icon *ngIf="carpet.sample_construction && carpet.sample_construction !== carpet.quality" inline style="font-size: 14px; vertical-align: middle; color: #ef4444; margin-left: 4px;" matTooltip="Changed from project requirement">warning</mat-icon>
+                    </div>
+                    
+                    <div>
+                      <strong style="color: #475569;">Material:</strong> {{carpet.sample_material || carpet.material}}
+                      <mat-icon *ngIf="carpet.sample_material && carpet.sample_material !== carpet.material" inline style="font-size: 14px; vertical-align: middle; color: #ef4444; margin-left: 4px;" matTooltip="Changed from project requirement">warning</mat-icon>
+                    </div>
+                  </div>
+                  
+                  <mat-form-field appearance="outline" class="review-comment-field" style="width: 100%; margin-bottom: -1.25em;">
+                    <mat-label>Review Comments</mat-label>
+                    <textarea matInput rows="1" [(ngModel)]="carpet.review_comments"></textarea>
+                  </mat-form-field>
+                </div>
+                
+                <div class="item-actions" style="display: flex; flex-direction: column; gap: 8px; min-width: 150px; justify-content: center;">
+                  <button mat-flat-button color="primary" (click)="approve(carpet)" style="width: 100%;">Send to Production</button>
+                  <button mat-stroked-button color="warn" (click)="revise(carpet)" style="width: 100%;">Revise</button>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </mat-card>
+
+    <!-- Section 1.5: Active Work -->
+    <mat-card class="section-container" *ngIf="activeWorkGroups.length > 0" style="margin-bottom: 24px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <div class="section-header" style="background: #f8fafc; padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+        <h3 class="highlight-active" style="margin: 0; color: #0f172a; font-size: 16px;"><mat-icon inline style="vertical-align: middle; margin-right: 8px; color: #10b981;">engineering</mat-icon>Active Work ({{ activeCount }})</h3>
+      </div>
+      
+      <div class="list-wrapper" style="padding: 16px;">
+        <mat-accordion multi class="seamless-accordion" style="display: block; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff;">
+          <mat-expansion-panel *ngFor="let group of activeWorkGroups; let last = last" class="active-item project-group-panel" [ngStyle]="{'border-bottom': last ? 'none' : '1px solid #e2e8f0'}" style="border-radius: 0; margin-bottom: 0; background: #fff; box-shadow: none;">
+            <mat-expansion-panel-header style="padding: 16px 24px; height: auto !important; min-height: 64px;">
+              <mat-panel-title style="margin: 0;">
+                <div style="display: flex; align-items: center;">
+                  <span style="font-weight: 600; font-size: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    {{ group.project.project_name }} 
+                    <span style="font-weight: normal; color: #64748b;">| {{ group.project.client_name }}</span>
+                  </span>
+                </div>
+              </mat-panel-title>
+              <mat-panel-description style="display: flex; align-items: center; justify-content: flex-end; color: #0369a1; font-weight: 500; margin: 0; padding-right: 16px;">
+                {{ group.carpets.length }} sample(s) active
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div style="padding: 16px 24px 24px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+              <div *ngFor="let carpet of group.carpets" style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 16px; margin-bottom: 16px; background: #fff; display: flex; gap: 16px; align-items: center;">
+                <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                  <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px;">
+                    <div class="item-title" style="margin: 0; font-weight: 600; font-size: 16px; color: #1e293b;">{{carpet.composite_item_name}} <span class="item-id" style="color:#64748b; font-size: 14px;">({{carpet.id}})</span></div>
+                    <span class="status-badge" [class]="carpet.status.replace(' ', '-').toLowerCase()" style="font-size: 12px; padding: 2px 8px; border-radius: 12px;">{{ carpet.status }}</span>
+                  </div>
+                  <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;">
+                    <strong>Designer:</strong> {{carpet.designer}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </mat-card>
+
+    <!-- Section 2: Ready for Production -->
+    <mat-card class="section-container" style="border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+      <div class="section-header" style="background: #f8fafc; padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+        <h3 class="highlight-active" style="color: #0f172a; margin: 0; font-size: 16px;"><mat-icon inline style="vertical-align: middle; margin-right: 8px; color: #3b82f6;">inventory_2</mat-icon>Ready for Production ({{ readyCount }})</h3>
+      </div>
+
+      <div class="list-wrapper" style="padding: 16px;" *ngIf="readyProjectGroups.length > 0">
+        <mat-accordion multi class="seamless-accordion" style="display: block; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff;">
+          <mat-expansion-panel *ngFor="let group of readyProjectGroups; let last = last" [ngStyle]="{'border-bottom': last ? 'none' : '1px solid #e2e8f0'}" style="border-radius: 0; margin-bottom: 0; box-shadow: none;">
+            <mat-expansion-panel-header style="padding: 16px 24px; height: auto !important; min-height: 64px;">
+              <mat-panel-title style="margin: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <span style="font-weight: 600; font-size: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    {{ group.project.project_name }} 
+                    <span style="font-weight: normal; color: #64748b;">| {{ group.project.client_name }}</span>
+                  </span>
+                  <button *ngIf="hasSelected(group)" mat-flat-button color="primary" (click)="$event.stopPropagation(); printSelectedGroup(group)" style="height: 32px; padding: 0 16px; font-size: 13px; border-radius: 16px;">
+                    <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px; display: inline-flex; align-items: center; justify-content: center;">print</mat-icon>
+                    Generate Sample Request
+                  </button>
+                </div>
+              </mat-panel-title>
+              <mat-panel-description style="display: flex; align-items: center; justify-content: flex-end; color: #0369a1; font-weight: 500; margin: 0; padding-right: 16px;">
+                {{ group.carpets.length }} sample(s) ready
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div style="padding: 0; border-top: 1px solid #e2e8f0;">
+              <div class="table-container" style="padding: 0;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                  <thead style="background: #f8fafc;">
+                    <tr>
+                      <th style="width: 48px; text-align: center; padding: 12px 8px; border-bottom: 1px solid #e2e8f0;">
+                        <mat-checkbox 
+                          (change)="$event ? toggleAll(group) : null"
+                          [checked]="selection.hasValue() && isAllSelected(group)"
+                          [indeterminate]="selection.hasValue() && !isAllSelected(group)"
+                          color="primary">
+                        </mat-checkbox>
+                      </th>
+                      <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0;">Item Name</th>
+                      <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0;">SKU</th>
+                      <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0;">Status</th>
+                      <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let carpet of group.carpets" [class.selected-row]="selection.isSelected(carpet)" style="border-bottom: 1px solid #e2e8f0;">
+                      <td style="text-align: center; padding: 12px 8px;">
+                        <mat-checkbox 
+                          (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(carpet) : null"
+                          [checked]="selection.isSelected(carpet)"
+                          color="primary">
+                        </mat-checkbox>
+                      </td>
+                      <td style="font-weight: 500; padding: 12px 16px; color: #1e293b;">{{ carpet.composite_item_name }}</td>
+                      <td style="color: #64748b; font-family: monospace; padding: 12px 16px;">{{ carpet.id }}</td>
+                      <td style="padding: 12px 16px;">
+                        <span class="status-badge" [class]="carpet.status.replace(' ', '-').toLowerCase()">
+                          {{ carpet.status }}
+                        </span>
+                      </td>
+                      <td style="padding: 12px 16px;">
+                        <button mat-icon-button [matMenuTriggerFor]="sampleMenu">
+                          <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #sampleMenu="matMenu">
+                          <button mat-menu-item (click)="generateIndividualSampleRequest(carpet)">
+                            <mat-icon color="primary">print</mat-icon> <span>Generate Sample Request</span>
+                          </button>
+                          <button mat-menu-item (click)="sendToProduction(carpet)" *ngIf="carpet.status === 'Sent to AM' || carpet.status === 'Approved' || carpet.status === 'Sample Approved'">
+                            <mat-icon color="accent">precision_manufacturing</mat-icon> <span>Send to Production</span>
+                          </button>
+                        </mat-menu>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+      <div *ngIf="readyProjectGroups.length === 0" style="padding: 32px; text-align: center; color: #64748b;">
+        No samples ready for production.
+      </div>
+    </mat-card>
+  </div>
+    <div class="mt-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Samples in Production</h2>
+      </div>
+      <mat-card class="table-card" *ngIf="productionSamples.length > 0; else noProdSamples">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Sample ID</th>
+                <th>Carpet SKU</th>
+                <th>Type</th>
+                <th>Completion Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sample of productionSamples">
+                <td><span style="font-weight: 500; color: #1e40af;">{{ sample.id }}</span></td>
+                <td>{{ sample.carpet_fk }}</td>
+                <td>{{ sample.sample_type }}</td>
+                <td>
+                  <span *ngIf="sample.completion_date">{{ sample.completion_date | date }}</span>
+                  <span *ngIf="!sample.completion_date" style="color: #9ca3af; font-style: italic;">Pending</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="sample.status?.replace(' ', '-').toLowerCase()">
+                    {{ sample.status }}
+                  </span>
+                </td>
+                <td>
+                  <button mat-icon-button color="primary" (click)="printProductionSample(sample)" matTooltip="Print Sample Request">
+                    <mat-icon>print</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card>
+      <ng-template #noProdSamples>
+        <div class="text-center py-8 text-gray-500 border border-dashed rounded-xl">
+          No samples currently in production.
+        </div>
+      </ng-template>
+    </div>
+</div>

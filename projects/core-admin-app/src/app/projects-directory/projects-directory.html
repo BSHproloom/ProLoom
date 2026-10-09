@@ -1,63 +1,111 @@
-<div class="directory-container">
-  <div class="header">
-    <h2>Projects Directory</h2>
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0;">Projects Directory</h1>
+      <p style="color: #6b7280; margin-top: 4px;">Overview and management of all active projects.</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="filter-dropdown" style="margin-bottom: -1.25em;">
+        <mat-label>Filter by AM</mat-label>
+        <mat-select [(ngModel)]="amFilter" (selectionChange)="onAmFilterChange()">
+          <mat-option value="">All Account Managers</mat-option>
+          <mat-option *ngFor="let u of allUsers" [value]="u.name" [style.display]="u.role === 'AM' ? 'block' : 'none'">{{ u.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
-  <div class="mat-elevation-z2 table-wrapper">
-    <table mat-table [dataSource]="dataSource" matSort>
-
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-        <td mat-cell *matCellDef="let element"> {{element.id}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="client_name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Client </th>
-        <td mat-cell *matCellDef="let element"> {{element.client_name}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="project_name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Project </th>
-        <td mat-cell *matCellDef="let element"> {{element.project_name}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="am">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Account Manager </th>
-        <td mat-cell *matCellDef="let element"> {{element.am}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="overall_status">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
-        <td mat-cell *matCellDef="let element">
-          <span class="status-badge" [ngClass]="element.overall_status.toLowerCase()">
-            {{element.overall_status}}
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="aggregatedStatus">
-        <th mat-header-cell *matHeaderCellDef> Carpet Status </th>
-        <td mat-cell *matCellDef="let element" class="carpet-status"> {{element.aggregatedStatus}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let element">
-          <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{project: element}">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-          class="project-row"
-          (contextmenu)="onContextMenu($event, row)">
-      </tr>
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of projects"></mat-paginator>
-  </div>
+  <mat-card style="border-radius: 12px; border-top: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <mat-card-content style="padding: 0;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <tr>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project ID</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Client</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project Name</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Account Manager</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Status</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let element of dataSource.filteredData | slice: ((paginator?.pageIndex || 0) * (paginator?.pageSize || 10)): (((paginator?.pageIndex || 0) + 1) * (paginator?.pageSize || 10))">
+            <!-- Project Row -->
+            <tr style="border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.2s;" class="hover:bg-gray-50" [style.background]="expandedElement === element ? '#f8fafc' : '#ffffff'" (click)="toggleRow(element)" (contextmenu)="onContextMenu($event, element)">
+              <td style="padding: 16px 24px; font-weight: 500; color: #2563eb;">
+                <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px; margin-right: 8px;">
+                  {{expandedElement === element ? 'expand_more' : 'chevron_right'}}
+                </mat-icon>
+                {{element.id}}
+              </td>
+              <td style="padding: 16px 24px; font-weight: 600; color: #1f2937;">{{element.client_name}}</td>
+              <td style="padding: 16px 24px; color: #4b5563;">{{element.project_name}}</td>
+              <td style="padding: 16px 24px; color: #4b5563;">{{element.am}}</td>
+              <td style="padding: 16px 24px;">
+                <span class="status-badge" [ngClass]="element.aggregatedStatus.toLowerCase().replace(' ', '-')">
+                  {{element.aggregatedStatus}}
+                </span>
+              </td>
+              <td style="padding: 16px 24px; text-align: right;">
+                <button mat-icon-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="{project: element}" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <!-- Expanded Details -->
+            <tr *ngIf="expandedElement === element" style="background-color: #f8fafc;">
+              <td colspan="6" style="padding: 0;">
+                <div style="padding: 16px 24px 24px 64px; border-bottom: 1px solid #e5e7eb;">
+                  <div *ngIf="projectCarpets[element.id] && projectCarpets[element.id].length > 0">
+                    <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Carpet Breakdown</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                      <thead style="border-bottom: 1px solid #e5e7eb;">
+                        <tr>
+                          <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Carpet Name-SKU</th>
+                          <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Size</th>
+                          <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Status</th>
+                          <th style="padding: 8px; text-align: left; color: #6b7280; font-weight: 500;">Designer Assignment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let carpet of projectCarpets[element.id]" style="border-bottom: 1px solid #f3f4f6;">
+                          <td style="padding: 8px; color: #111827;"><strong>{{carpet.composite_item_name}}</strong> <span style="color: #6b7280; font-size: 12px;">({{carpet.id}})</span></td>
+                          <td style="padding: 8px; color: #4b5563;">{{carpet.size}}</td>
+                          <td style="padding: 8px;"><span class="status-badge" [ngClass]="carpet.status.replace(' ', '-').toLowerCase()">{{carpet.status}}</span></td>
+                          <td style="padding: 8px;">
+                            <div *ngIf="carpet.status === 'Need to Assign' || carpet.status === 'Assigned'">
+                              <mat-form-field appearance="outline" class="compact-dropdown" style="margin-bottom: -1.25em;">
+                                <mat-select [value]="carpet.designer" (selectionChange)="assignDesigner(carpet, $event.value)" placeholder="Select Designer">
+                                  <mat-option *ngFor="let d of designers" [value]="d.name">{{ d.name }}</mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                            </div>
+                            <span *ngIf="carpet.status !== 'Need to Assign' && carpet.status !== 'Assigned'" style="color: #4b5563;">
+                              {{ carpet.designer || 'Unassigned' }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div *ngIf="projectCarpets[element.id] && projectCarpets[element.id].length === 0" style="color: #6b7280;">
+                    No carpets found for this project.
+                  </div>
+                  <div *ngIf="!projectCarpets[element.id]" style="color: #6b7280;">
+                    Loading carpets...
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="dataSource.filteredData.length === 0">
+            <td colspan="6" style="padding: 48px; text-align: center; color: #6b7280;">No projects found.</td>
+          </tr>
+        </tbody>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of projects"></mat-paginator>
+    </mat-card-content>
+  </mat-card>
 </div>
 
 <div style="visibility: hidden; position: fixed"
@@ -65,6 +113,15 @@
      [style.top]="contextMenuPosition.y"
      [matMenuTriggerFor]="contextMenu">
 </div>
+
+<mat-menu #projectMenu="matMenu">
+  <ng-template matMenuContent let-project="project">
+    <button mat-menu-item (click)="copyToWhatsApp(project)">
+      <mat-icon>content_copy</mat-icon>
+      <span>Copy for WhatsApp</span>
+    </button>
+  </ng-template>
+</mat-menu>
 
 <mat-menu #contextMenu="matMenu">
   <ng-template matMenuContent let-project="project">
@@ -78,8 +135,8 @@
 <mat-menu #menu="matMenu">
   <ng-template matMenuContent let-project="project">
     <button mat-menu-item [routerLink]="['/project', project.id]">
-      <mat-icon>visibility</mat-icon>
-      <span>View & Assign Carpets</span>
+      <mat-icon>open_in_new</mat-icon>
+      <span>Open Project Profile</span>
     </button>
     <button mat-menu-item (click)="copyToWhatsApp(project)">
       <mat-icon>content_copy</mat-icon>

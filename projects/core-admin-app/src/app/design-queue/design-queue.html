@@ -1,121 +1,309 @@
+<div class="page-wrapper">
 <div class="queue-container">
-  <h2>Design Queue</h2>
+  <div class="page-header">
+    <h2>Design Queue</h2>
+  </div>
 
-  <mat-tab-group>
-    <mat-tab label="Need Assignment ({{ dataSource.data.length }})">
-      <div class="tab-content" style="padding-top: 16px;">
-        <div class="bulk-actions" style="margin-bottom: 16px;">
-          <mat-form-field appearance="outline" style="margin-right: 16px;">
-            <mat-label>Assign to Designer</mat-label>
-            <mat-select [(value)]="selectedDesigner">
-              <mat-option *ngFor="let d of designers" [value]="d.name">{{d.name}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <button mat-raised-button color="primary" [disabled]="selection.selected.length === 0 || !selectedDesigner" (click)="assign()">
-            Assign Selected ({{selection.selected.length}})
-          </button>
-        </div>
-
-        <div class="mat-elevation-z2">
-          <table mat-table [dataSource]="dataSource">
+  <mat-card class="section-container" *ngIf="reviewDataSource.data.length > 0">
+    <div class="section-header">
+      <h3 class="highlight-review"><mat-icon inline style="vertical-align: middle; margin-right: 8px;">fact_check</mat-icon>Pending Review ({{ reviewDataSource.data.length }})</h3>
+    </div>
+    
+    <div class="list-wrapper">
+      <div class="list-item review-item" *ngFor="let task of reviewDataSource.data">
+        <div class="item-main" style="align-items: flex-start; display: flex; flex-direction: row; width: 100%; gap: 16px;">
+          <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+              <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px;">
+              <div class="item-title" style="margin: 0;">{{task.composite_item_name}} <span class="item-id">({{task.id}})</span></div>
+              <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;"><strong>Project:</strong> {{task.project_name}} | <strong>Designer:</strong> {{task.designer}} | <strong>Type:</strong> {{task.type_of_work === 'Sample' ? 'Sample' : (task.type_of_work === 'Production files' ? 'Production File' : (task.status.includes('Revision') || (task.revision || 0) > 0 ? 'Revision' : 'New Artwork'))}} | <strong>Time Spent:</strong> {{formatTime(task.time_spent_seconds)}}</div>
+            </div>
             
-            <ng-container matColumnDef="select">
-              <th mat-header-cell *matHeaderCellDef>
-                <mat-checkbox (change)="$event ? toggleAllRows() : null"
-                              [checked]="selection.hasValue() && isAllSelected()"
-                              [indeterminate]="selection.hasValue() && !isAllSelected()">
-                </mat-checkbox>
-              </th>
-              <td mat-cell *matCellDef="let row">
-                <mat-checkbox (click)="$event.stopPropagation()"
-                              (change)="$event ? selection.toggle(row) : null"
-                              [checked]="selection.isSelected(row)">
-                </mat-checkbox>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef> SKU </th>
-              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="project_fk">
-              <th mat-header-cell *matHeaderCellDef> Project </th>
-              <td mat-cell *matCellDef="let element"> {{element.project_fk}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="composite_item_name">
-              <th mat-header-cell *matHeaderCellDef> Carpet Name </th>
-              <td mat-cell *matCellDef="let element"> {{element.composite_item_name}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="size">
-              <th mat-header-cell *matHeaderCellDef> Size </th>
-              <td mat-cell *matCellDef="let element"> {{element.size}} </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selection.toggle(row)"></tr>
-          </table>
-          <div class="empty-state" *ngIf="dataSource.data.length === 0" style="padding: 24px; text-align: center; color: #666;">
-            No carpets need assignment.
+            <mat-form-field appearance="outline" class="review-comment-field" style="width: 100%; margin-bottom: -1.25em;">
+              <mat-label>Review Comments</mat-label>
+              <textarea matInput rows="1" [(ngModel)]="task.review_comments" (blur)="saveComment(task)"></textarea>
+            </mat-form-field>
+          </div>
+          
+          <div class="item-actions" style="display: flex; flex-direction: column; gap: 8px; margin-top: 32px;">
+            <button *ngIf="hasFiles(task)" mat-stroked-button (click)="viewFiles(task)" style="color: #6366f1; border-color: #6366f1;">
+              <mat-icon>attach_file</mat-icon> View Files
+            </button>
+            <button mat-flat-button color="primary" (click)="approve(task)">Sent to AM</button>
+            <button mat-stroked-button color="warn" (click)="revise(task)">Revise</button>
           </div>
         </div>
       </div>
-    </mat-tab>
+      <div class="empty-state" *ngIf="reviewDataSource.data.length === 0">
+        No carpets pending review.
+      </div>
+    </div>
+  </mat-card>
 
-    <mat-tab label="Pending Review ({{ reviewDataSource.data.length }})">
-      <div class="tab-content" style="padding-top: 16px;">
-        <div class="mat-elevation-z2">
-          <table mat-table [dataSource]="reviewDataSource">
-            
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef> SKU </th>
-              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
-            </ng-container>
 
-            <ng-container matColumnDef="project_fk">
-              <th mat-header-cell *matHeaderCellDef> Project </th>
-              <td mat-cell *matCellDef="let element"> {{element.project_fk}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="composite_item_name">
-              <th mat-header-cell *matHeaderCellDef> Carpet Name </th>
-              <td mat-cell *matCellDef="let element"> {{element.composite_item_name}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="designer">
-              <th mat-header-cell *matHeaderCellDef> Designer </th>
-              <td mat-cell *matCellDef="let element"> {{element.designer}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="time_spent">
-              <th mat-header-cell *matHeaderCellDef> Time Spent </th>
-              <td mat-cell *matCellDef="let element"> {{formatTime(element.time_spent_seconds)}} </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef> Review Actions </th>
-              <td mat-cell *matCellDef="let element"> 
-                <button mat-button color="primary" (click)="approve(element)">Approve</button>
-                <div style="display:flex; align-items:center; margin-top:8px;">
-                  <mat-form-field appearance="outline" style="width: 200px; margin-right: 8px;">
-                    <mat-label>Revision Comment</mat-label>
-                    <input matInput [(ngModel)]="revisionComment[element.id]">
-                  </mat-form-field>
-                  <button mat-button color="warn" (click)="revise(element)">Revise</button>
+  <mat-card class="section-container">
+    <div class="section-header">
+      <h3 class="highlight-active"><mat-icon inline style="vertical-align: middle; margin-right: 8px;">brush</mat-icon>Active Work ({{ activeDataSource.data.length }})</h3>
+    </div>
+    
+    <div class="list-wrapper" style="padding: 0; background: #fff;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+          <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <tr>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 15%;">Designer</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 25%;">Item</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 15%;">Type of Work</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 15%;">Project</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 10%;">Assigned Date</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 10%;">Est. Finish Date</th>
+              <th style="padding: 8px 16px; font-weight: 600; color: #475569; width: 10%;">Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of flattenedActiveWork; trackBy: trackByFlattened" [style.background]="row.carpet?.is_working ? '#f0fdf4' : '#ffffff'" style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 16px;">
+                <div *ngIf="row.designer" style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                  <mat-icon style="color: #64748b; font-size: 20px; width: 20px; height: 20px;">account_circle</mat-icon>
+                  {{row.designer}}
                 </div>
               </td>
-            </ng-container>
+              
+              <!-- Idle Row -->
+              <td *ngIf="row.isIdleRow" colspan="5" style="padding: 8px 16px; color: #94a3b8; font-style: italic;">
+                Idle (Not clocking time)
+              </td>
 
-            <tr mat-header-row *matHeaderRowDef="reviewColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: reviewColumns;"></tr>
-          </table>
-          <div class="empty-state" *ngIf="reviewDataSource.data.length === 0" style="padding: 24px; text-align: center; color: #666;">
-            No carpets pending review.
+              <!-- Active Task Row -->
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 500; color: #0f172a;">{{row.carpet.composite_item_name}}</span>
+                  <span style="color: #64748b; font-size: 12px;">({{row.carpet.id}})</span>
+                  <span *ngIf="row.carpet.is_working" style="font-size: 10px; background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; line-height: 1.5;">WORKING</span>
+                </div>
+              </td>
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px; color: #334155;">
+                <span [style.background]="row.carpet.type_of_work === 'Sample' ? '#8b5cf6' : (row.carpet.type_of_work === 'Production files' ? '#ff007f' : (row.carpet.status?.includes('Revision') || (row.carpet.revision || 0) > 0 ? '#f59e0b' : '#3b82f6'))" style="color: white; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 12px;">
+                  {{ row.carpet.type_of_work === 'Sample' ? 'Sample' : (row.carpet.type_of_work === 'Production files' ? 'Production File' : (row.carpet.status?.includes('Revision') || (row.carpet.revision || 0) > 0 ? 'Revision' : 'New Artwork')) }}
+                </span>
+              </td>
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px; color: #334155;">{{row.carpet.project_name}}</td>
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px; color: #64748b;">{{formatDate(row.carpet.assigned_date)}}</td>
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px; color: #64748b;">{{formatDate(row.carpet.designer_readiness_date)}}</td>
+              <td *ngIf="!row.isIdleRow" style="padding: 8px 16px;">
+                <button mat-icon-button [matMenuTriggerFor]="optionsMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #optionsMenu="matMenu">
+                  <button mat-menu-item (click)="promptReassign(row.carpet)">
+                    <mat-icon>swap_horiz</mat-icon>
+                    <span>Reassign</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="flattenedActiveWork.length === 0">
+        No designers found.
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-card class="section-container" *ngIf="sentToAmDataSource.data.length > 0">
+    <div class="section-header space-between" style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 class="highlight-review" style="color: #0ea5e9; background-color: #e0f2fe; border-left-color: #0ea5e9; margin: 0;">
+        <mat-icon inline style="vertical-align: middle; margin-right: 8px;">send</mat-icon>Sent to AM ({{ sentToAmDataSource.data.length }})
+      </h3>
+      <div class="bulk-actions" *ngIf="sentToAmSelection.selected.length > 0">
+        <button mat-raised-button color="primary" (click)="sendSelectedToProduction()" style="background-color: #ff007f; color: white;">
+          <mat-icon>precision_manufacturing</mat-icon> Send {{sentToAmSelection.selected.length}} to Production
+        </button>
+      </div>
+    </div>
+    
+    <div class="list-wrapper">
+      <div *ngFor="let group of sentToAmGroups" class="project-group" style="margin-bottom: 16px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff;">
+        <div class="group-header" style="background-color: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" (click)="toggleGroup(group)" class="hover:bg-gray-50">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="color: #64748b;">{{ group.isExpanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? toggleProjectSelection(group) : null"
+                          [checked]="isProjectSelected(group)"
+                          [indeterminate]="isProjectIndeterminate(group)"
+                          color="primary">
+            </mat-checkbox>
+            <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: #1e293b;">
+              {{group.carpets.length}} {{group.carpets.length === 1 ? 'Carpet' : 'Carpets'}} - {{group.project_name}} <span style="color: #64748b; font-weight: 500;">({{group.project_id}})</span>
+            </h4>
+          </div>
+          <button mat-stroked-button color="primary" (click)="followUpAMProject(group); $event.stopPropagation()">
+            <mat-icon>message</mat-icon> Follow-up
+          </button>
+        </div>
+        <div class="group-items" style="padding: 0;" *ngIf="group.isExpanded">
+          <div class="list-item review-item" *ngFor="let task of group.carpets" style="border-bottom: 1px solid #f1f5f9; padding: 12px 16px; border-radius: 0; margin-bottom: 0;">
+            <div class="item-main" style="align-items: center; display: flex; flex-direction: row; width: 100%; gap: 16px; padding-left: 32px;">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? sentToAmSelection.toggle(task) : null"
+                            [checked]="sentToAmSelection.isSelected(task)"
+                            color="primary">
+              </mat-checkbox>
+              <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+                  <div class="item-title" style="margin: 0; font-size: 14px;">{{task.composite_item_name}} <span class="item-id" style="color: #64748b;">({{task.id}})</span></div>
+                </div>
+              </div>
+              <div class="item-actions" style="display: flex; gap: 8px;">
+                <button mat-icon-button [matMenuTriggerFor]="sentAmMenu" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #sentAmMenu="matMenu">
+                  <button mat-menu-item (click)="reviseWithComment(task)">
+                    <mat-icon style="color: #f59e0b;">rate_review</mat-icon>
+                    <span>Revise with Comment</span>
+                  </button>
+                  <button mat-menu-item [matMenuTriggerFor]="designerMenuSample">
+                    <mat-icon style="color: #10b981;">check_circle</mat-icon>
+                    <span>Approve & Proceed to Sample</span>
+                  </button>
+                  <button mat-menu-item (click)="skipSample(task)">
+                    <mat-icon style="color: #3b82f6;">assignment_return</mat-icon>
+                    <span>Request Undertaking Letter</span>
+                  </button>
+                </mat-menu>
+                <mat-menu #designerMenuSample="matMenu">
+                  <button mat-menu-item *ngFor="let d of designers" (click)="openSampleAssignDialog(task, d.name)">
+                    <mat-icon>person</mat-icon> Assign to {{d.name}}
+                  </button>
+                </mat-menu>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </mat-tab>
-  </mat-tab-group>
+    </div>
+  </mat-card>
+
+  <mat-card class="section-container" *ngIf="pendingUndertakingDataSource.data.length > 0">
+    <div class="section-header">
+      <h3 class="highlight-review" style="color: #8b5cf6; background-color: #ede9fe; border-left-color: #8b5cf6;">
+        <mat-icon inline style="vertical-align: middle; margin-right: 8px;">assignment_late</mat-icon>Pending Undertaking ({{ pendingUndertakingDataSource.data.length }})
+      </h3>
+    </div>
+    <div class="list-wrapper">
+      <div class="list-item review-item" *ngFor="let task of pendingUndertakingDataSource.data">
+        <div class="item-main" style="align-items: center; display: flex; flex-direction: row; width: 100%; gap: 16px;">
+          <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+              <div class="item-title" style="margin: 0; font-size: 14px;">{{task.composite_item_name}} <span class="item-id">({{task.id}})</span></div>
+              <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;"><strong>Project:</strong> {{task.project_name}}</div>
+            </div>
+          </div>
+          <div class="item-actions" style="display: flex; gap: 8px;">
+            <button mat-stroked-button color="primary" [matMenuTriggerFor]="approveUndertakingMenu">
+              <mat-icon>check_circle</mat-icon> Approve Undertaking
+            </button>
+            <mat-menu #approveUndertakingMenu="matMenu">
+              <div mat-menu-item disabled style="color: #64748b; font-size: 12px; font-weight: 600;">Assign Production File:</div>
+              <button mat-menu-item *ngFor="let d of designers" (click)="approveUndertaking(task, d.name)">
+                <mat-icon>person</mat-icon> {{d.name}}
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-card class="section-container" *ngIf="dataSource.data.length > 0">
+    <div class="section-header space-between">
+      <h3 class="highlight-assign"><mat-icon inline style="vertical-align: middle; margin-right: 8px;">assignment</mat-icon>Need Assignment ({{ dataSource.data.length }})</h3>
+    </div>
+
+    <div class="select-all-wrapper" *ngIf="dataSource.data.length > 0" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                    [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()"
+                    color="primary">
+        Select All
+      </mat-checkbox>
+      
+      <div class="bulk-actions" *ngIf="selection.selected.length > 0" style="display: flex; gap: 8px; align-items: center;">
+        <mat-form-field appearance="outline" class="compact-select" style="margin-bottom: -1.25em;">
+          <mat-label>Artwork Expected</mat-label>
+          <input matInput [matDatepicker]="bulkDatePicker" [(ngModel)]="bulkArtworkDate">
+          <mat-datepicker-toggle matIconSuffix [for]="bulkDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #bulkDatePicker></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="compact-select" style="margin-bottom: -1.25em;">
+          <mat-label>Assign to Designer</mat-label>
+          <mat-select [(value)]="selectedDesigner">
+            <mat-option *ngFor="let d of designers" [value]="d.name">{{d.name}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-raised-button color="primary" [disabled]="!selectedDesigner" (click)="assign()" style="margin-bottom: 8px;">
+          Assign Selected ({{selection.selected.length}})
+        </button>
+      </div>
+    </div>
+    
+    <div class="list-wrapper">
+      <div class="list-item clickable-item" *ngFor="let task of dataSource.data; trackBy: trackByCarpetId" [class.selected]="selection.isSelected(task)" (click)="selection.toggle(task)">
+        <div class="item-main">
+          <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? selection.toggle(task) : null"
+                        [checked]="selection.isSelected(task)"
+                        color="primary"
+                        style="margin-right: 16px;">
+          </mat-checkbox>
+          <div class="item-details" style="flex: 1;">
+            <div class="item-title">{{task.composite_item_name}} <span class="item-id">({{task.id}})</span></div>
+            <div class="item-sub"><strong>Project:</strong> {{task.project_fk}} - {{task.project_name}} | <strong>Type:</strong> <span [style.color]="task.type_of_work === 'Sample' ? '#8b5cf6' : (task.type_of_work === 'Production files' ? '#ff007f' : (task.status.includes('Revision') || (task.revision || 0) > 0 ? '#f59e0b' : '#3b82f6'))" style="font-weight: 600;">{{task.type_of_work === 'Sample' ? 'Sample' : (task.type_of_work === 'Production files' ? 'Production File' : (task.status.includes('Revision') || (task.revision || 0) > 0 ? 'Revision' : 'New Artwork'))}}</span> | <strong>Size:</strong> {{task.size}}</div>
+          </div>
+          <div class="item-actions" *ngIf="selection.selected.length === 0" style="margin-left: auto; display: flex; gap: 8px;">
+            <mat-form-field appearance="outline" class="compact-select" (click)="$event.stopPropagation()" style="margin-bottom: -1.25em; width: 150px;">
+              <mat-label>Artwork Expected</mat-label>
+              <input matInput [matDatepicker]="taskPicker" [(ngModel)]="task.designer_readiness_date">
+              <mat-datepicker-toggle matIconSuffix [for]="taskPicker"></mat-datepicker-toggle>
+              <mat-datepicker #taskPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="compact-select" (click)="$event.stopPropagation()" style="margin-bottom: -1.25em; width: 150px;">
+              <mat-label>Assign</mat-label>
+              <mat-select [(value)]="task.selectedDesigner" (selectionChange)="assignIndividual(task)">
+                <mat-option *ngFor="let d of designers" [value]="d.name">{{d.name}}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="dataSource.data.length === 0">
+        No carpets need assignment.
+      </div>
+
+    </div>
+  </mat-card>
 </div>
+</div>
+
+<ng-template #sampleAssignDialog>
+  <h2 mat-dialog-title>Sample Request Details</h2>
+  <mat-dialog-content>
+    <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+      <p style="margin: 0;">Assigning sample for <strong>{{ pendingSampleAssignTask?.composite_item_name }}</strong> to <strong>{{ pendingSampleAssignDesigner }}</strong>.</p>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Expectation Date</mat-label>
+        <input matInput type="date" [(ngModel)]="pendingSampleAssignDate">
+      </mat-form-field>
+
+      <mat-checkbox [(ngModel)]="pendingSampleAssignUrgent" color="warn">
+        Mark as Urgent
+      </mat-checkbox>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-flat-button color="primary" (click)="confirmSampleAssign()">Assign Sample</button>
+  </mat-dialog-actions>
+</ng-template>

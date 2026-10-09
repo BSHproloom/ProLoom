@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { Artwork } from './artwork';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('Artwork', () => {
-  let component: Artwork;
-  let fixture: ComponentFixture<Artwork>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Artwork],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(Artwork);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(Artwork);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(Artwork);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

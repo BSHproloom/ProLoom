@@ -1,0 +1,23 @@
+<div class="spot-search-wrapper">
+  <mat-form-field appearance="outline" class="spot-search-field">
+    <mat-icon matPrefix class="search-icon">search</mat-icon>
+    <input type="text"
+           matInput
+           placeholder="Search Projects, Clients, or SKUs..."
+           [formControl]="searchControl"
+           [matAutocomplete]="auto"
+           #searchInput>
+    <button mat-icon-button matSuffix (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelection($event)" [displayWith]="displayFn">
+      <mat-option *ngFor="let option of filteredOptions | async" [value]="option" class="spot-search-option">
+        <mat-icon class="option-icon">{{option.icon}}</mat-icon>
+        <div class="option-text">
+          <span class="option-label">{{option.label}}</span>
+          <span class="option-type">{{option.type}}</span>
+        </div>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+</div>

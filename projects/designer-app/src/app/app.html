@@ -1,46 +1,63 @@
-<mat-toolbar color="primary" class="topbar">
-  <button mat-icon-button (click)="toggleSidebar()">
-    <mat-icon>menu</mat-icon>
-  </button>
-  <span class="title hide-on-mobile">{{ title() }}</span>
-  <span class="spacer"></span>
-  
-  <mat-form-field appearance="outline" class="identity-switcher hide-on-mobile" style="margin-top: 16px; margin-right: 16px;">
-    <mat-label>View As</mat-label>
-    <mat-select [(ngModel)]="currentDesigner" (selectionChange)="onDesignerChange()">
-      <mat-option *ngFor="let d of designers" [value]="d">{{ d.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+<ng-container *ngIf="currentDesigner; else loginScreen">
+  <header class="modern-topbar">
+    <button mat-icon-button (click)="toggleSidebar()" class="menu-btn">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="brand-container hide-on-mobile">
+      <mat-icon class="brand-icon">scatter_plot</mat-icon>
+      <span class="title">{{ title() }}</span>
+    </div>
+    
+    <span class="spacer"></span>
+    <lib-notification-bell *ngIf="currentDesigner" [recipientEmail]="currentDesigner.email" recipientRole="Designer"></lib-notification-bell>
+    <button mat-icon-button color="warn" (click)="logout()" matTooltip="Logout" style="margin-left: 8px;">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </header>
 
-  <lib-notification-bell 
-    *ngIf="currentDesigner" 
-    [recipientEmail]="currentDesigner?.email" 
-    [recipientRole]="'Designer'">
-  </lib-notification-bell>
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav [opened]="true" mode="side" class="sidenav" [class.collapsed]="!isSidebarOpen" fixedInViewport="true" fixedTopGap="64">
+      <mat-nav-list>
+        <a *ngIf="hasTabAccess('my-tasks')" mat-list-item routerLink="/sample-request" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon style="color: #ef4444;">style</mat-icon>
+          <span matListItemTitle style="color: #ef4444; font-weight: 500;">Sample Request</span>
+        </a>
+        <a *ngIf="hasTabAccess('my-tasks')" mat-list-item routerLink="/my-tasks" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon>checklist</mat-icon>
+          <span matListItemTitle style="display: flex; align-items: center; width: 100%;">
+            My Tasks
+            <span class="custom-badge" *ngIf="pendingTasksCount > 0" style="margin-left: 8px; background-color: #ef4444; color: white;">{{pendingTasksCount}}</span>
+          </span>
+        </a>
+        <a *ngIf="hasTabAccess('reports')" mat-list-item routerLink="/reports" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon>bar_chart</mat-icon>
+          <span matListItemTitle>My Reports</span>
+        </a>
+        <a *ngIf="hasTabAccess('leaderboard')" mat-list-item routerLink="/leaderboard" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon>emoji_events</mat-icon>
+          <span matListItemTitle>Leaderboard</span>
+        </a>
+        <a *ngIf="hasTabAccess('yarnsheet-calculator')" mat-list-item routerLink="/yarnsheet-calculator" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon>calculate</mat-icon>
+          <span matListItemTitle style="display: flex; align-items: center; width: 100%;">
+            Yarn
+            <span class="custom-badge" *ngIf="pendingYarnCount > 0" style="margin-left: 8px; background-color: #ef4444; color: white;">{{pendingYarnCount}}</span>
+          </span>
+        </a>
+        <mat-divider></mat-divider>
+        <a *ngIf="hasTabAccess('settings')" mat-list-item routerLink="/settings" routerLinkActive="active-link" (click)="onNavClick()">
+          <mat-icon matListItemIcon>settings</mat-icon>
+          <span matListItemTitle>Settings</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
 
-  <button mat-button class="search-btn">
-    <mat-icon>search</mat-icon> <span class="hide-on-mobile">Search (Ctrl+K)</span>
-  </button>
-  <div class="role-indicator designer hide-on-mobile">
-    <mat-icon>brush</mat-icon> Designer
-  </div>
-</mat-toolbar>
+    <mat-sidenav-content class="content">
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</ng-container>
 
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav [opened]="isSidebarOpen" mode="side" class="sidenav">
-    <mat-nav-list>
-      <a mat-list-item routerLink="/my-tasks" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>checklist</mat-icon>
-        <span matListItemTitle>My Tasks</span>
-      </a>
-      <a mat-list-item routerLink="/projects" routerLinkActive="active-link">
-        <mat-icon matListItemIcon>folder</mat-icon>
-        <span matListItemTitle>Projects (View Only)</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
-
-  <mat-sidenav-content class="content">
-    <router-outlet></router-outlet>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+<ng-template #loginScreen>
+  <lib-login role="Designer" [errorMsg]="loginError" (microsoftLogin)="onMicrosoftLoginSubmit($event)"></lib-login>
+</ng-template>

@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SharedCore } from './shared-core';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('SharedCore', () => {
-  let component: SharedCore;
-  let fixture: ComponentFixture<SharedCore>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SharedCore],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(SharedCore);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(SharedCore);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(SharedCore);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { CarpetService, Carpet } from 'shared-core';
 
 interface KPI {
   title: string;
@@ -25,17 +26,57 @@ interface LoomSchedule {
 })
 export class Dashboard implements OnInit {
   kpis: KPI[] = [
-    { title: 'Design Queue', value: 12, icon: 'assignment_late', isAlert: true, alertMessage: '5 items unassigned > 1 day' },
-    { title: 'In Design', value: 8, icon: 'brush', isAlert: false, alertMessage: 'All within 3 days SLA' },
-    { title: 'Client Approvals', value: 3, icon: 'fact_check', isAlert: true, alertMessage: '1 item waiting > 5 days' },
-    { title: 'Production Queue', value: 15, icon: 'precision_manufacturing', isAlert: false, alertMessage: 'Flowing smoothly' }
+    { title: 'Unassigned', value: 0, icon: 'assignment_late', isAlert: false, alertMessage: '' },
+    { title: 'In Design / Revision', value: 0, icon: 'brush', isAlert: false, alertMessage: '' },
+    { title: 'Pending Admin Review', value: 0, icon: 'fact_check', isAlert: false, alertMessage: '' },
+    { title: 'Approved (Sent to AM)', value: 0, icon: 'check_circle', isAlert: false, alertMessage: '' }
   ];
 
   loomSchedules: LoomSchedule[] = [];
   dates: number[] = [];
 
+  private carpetService = inject(CarpetService);
+
   ngOnInit() {
     this.generateMockLoomData();
+    
+    this.carpetService.getAllCarpets().subscribe(carpets => {
+      const unassigned = carpets.filter(c => c.status === 'Need to Assign').length;
+      const inDesign = carpets.filter(c => ['Assigned', 'In Progress', 'Revision Needed', 'Revision Requested'].includes(c.status)).length;
+      const pendingReview = carpets.filter(c => c.status === 'Review Pending').length;
+      const approved = carpets.filter(c => c.status === 'Sent to AM' || c.status === 'Approved').length;
+
+      this.kpis = [
+        { 
+          title: 'Unassigned', 
+          value: unassigned, 
+          icon: 'assignment_late', 
+          isAlert: unassigned > 0, 
+          alertMessage: unassigned > 0 ? `${unassigned} items need assignment` : 'All assigned' 
+        },
+        { 
+          title: 'In Design / Revision', 
+          value: inDesign, 
+          icon: 'brush', 
+          isAlert: false, 
+          alertMessage: `${inDesign} items currently with designers` 
+        },
+        { 
+          title: 'Pending Admin Review', 
+          value: pendingReview, 
+          icon: 'fact_check', 
+          isAlert: pendingReview > 0, 
+          alertMessage: pendingReview > 0 ? `${pendingReview} items waiting for your review` : 'Nothing to review' 
+        },
+        { 
+          title: 'Approved (Sent to AM)', 
+          value: approved, 
+          icon: 'check_circle', 
+          isAlert: false, 
+          alertMessage: `Total approved artworks` 
+        }
+      ];
+    });
   }
 
   generateMockLoomData() {

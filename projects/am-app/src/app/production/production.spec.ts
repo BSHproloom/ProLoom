@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { Production } from './production';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('Production', () => {
-  let component: Production;
-  let fixture: ComponentFixture<Production>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Production],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(Production);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(Production);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(Production);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

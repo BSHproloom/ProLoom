@@ -1,48 +1,192 @@
-<div class="tasks-container">
-  <h2>My Assigned Tasks</h2>
-
-  <div class="task-list">
-    <mat-card *ngFor="let task of tasks" class="task-card" [class.active-task]="task.is_working">
-      <mat-card-header>
-        <mat-card-title>{{task.composite_item_name}} ({{task.id}})</mat-card-title>
-        <mat-card-subtitle>Project: {{task.project_fk}} • Size: {{task.size}}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="status-row" style="margin-bottom: 16px;">
-          <mat-chip [class.revision]="task.status === 'Revision Needed'">{{task.status}}</mat-chip>
-          <div class="timer-display" [class.running]="task.is_working">
-            <mat-icon>{{task.is_working ? 'timer' : 'timer_off'}}</mat-icon>
-            {{task.timerDisplay}}
+<div class="split-view">
+  <!-- LEFT: Project Groups List -->
+  <div class="groups-pane">
+    <div class="groups-header">
+      <h2>My Tasks</h2>
+    </div>
+    <div class="groups-list">
+      <mat-card *ngFor="let group of activeProjectGroups" 
+                class="group-card" 
+                [class.selected]="selectedProjectGroup?.project_id === group.project_id"
+                (click)="selectedProjectGroup = group; selectedTask = null">
+        <mat-card-content>
+          <div class="group-title-row">
+            <span class="project-title"
+                  [matTooltip]="'Client: ' + (group.project?.client_name || 'N/A') + '\nProject: ' + (group.project?.project_name || 'N/A') + '\nAM: ' + (group.project?.am || 'N/A')"
+                  matTooltipClass="multi-line-tooltip"
+                  matTooltipPosition="right"
+                  [matTooltipDisabled]="!altPressed">
+              {{group.project_id}}
+            </span>
+            <span class="task-count">{{group.tasks.length}}</span>
           </div>
-        </div>
-        
-        <div *ngIf="!task.designer_readiness_date && task.status === 'Assigned'" style="margin-top: 8px;">
-          <small style="display:block; margin-bottom: 4px; color:#666;">Estimated Finishing Date:</small>
-          <input type="date" [(ngModel)]="task.designer_readiness_date" (change)="saveDate(task)" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-        <div *ngIf="task.designer_readiness_date" style="margin-top: 8px; font-size: 14px;">
-          <strong>Est. Finishing:</strong> {{ formatDate(task.designer_readiness_date) }}
-        </div>
-      </mat-card-content>
+        </mat-card-content>
+      </mat-card>
+      
+      <div *ngIf="activeProjectGroups.length === 0" class="empty-state">
+        <mat-icon>done_all</mat-icon>
+        <p>No active tasks assigned to you right now.</p>
+      </div>
+    </div>
+  </div>
 
-      <mat-card-actions class="actions-row">
-        <button mat-raised-button 
-                [color]="task.is_working ? 'warn' : 'primary'" 
-                (click)="toggleTimer(task)">
-          <mat-icon>{{task.is_working ? 'stop' : 'play_arrow'}}</mat-icon>
-          {{task.is_working ? 'Stop Work' : 'Start Work'}}
-        </button>
+  <!-- RIGHT: Task Details -->
+  <div class="task-detail-pane">
+    <div class="detail-content" *ngIf="selectedProjectGroup">
+      
+      <div *ngFor="let task of selectedProjectGroup.tasks" style="margin-bottom: 24px;">
+        <mat-card class="unified-carpet-card" [class.is-working]="task.is_working">
+          
+          <!-- ROW 1: Header -->
+          <div class="card-header-row">
+            <div class="title-wrap">
+              <h3>{{task.composite_item_name}}</h3>
+              <span class="sku-id">{{task.id}}</span>
+            </div>
+            <div class="action-icons" style="display: flex; align-items: center;">
+              <div class="timer-display" [class.overdue]="isOverdue(task)" style="margin-right: 12px; font-family: monospace; font-size: 16px; font-weight: bold;">
+                {{task.timerDisplay}}
+              </div>
+              <button mat-icon-button color="primary" (click)="openNotesPanel(task)" matTooltip="Notes">
+                <mat-icon>edit_note</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="openActivityPanel(task)" matTooltip="Activity History">
+                <mat-icon>history</mat-icon>
+              </button>
+            </div>
+          </div>
 
-        <span class="spacer"></span>
+          <!-- ROW 2: Specs -->
+          <div class="card-specs-row">
+            <span class="spec-item"><mat-icon>category</mat-icon> {{task.type_of_work || 'Artwork'}}</span>
+            <span class="spec-item" *ngIf="task.quality"><mat-icon>texture</mat-icon> {{task.quality}}</span>
+            <span class="spec-item" *ngIf="task.size"><mat-icon>straighten</mat-icon> {{task.size}}</span>
+            <span class="spec-item" *ngIf="task.status === 'Revision Requested' || task.status === 'Revision Needed'" style="color: #d32f2f; font-weight: 500;">
+              <mat-icon style="color: #d32f2f;">feedback</mat-icon> Revision
+            </span>
+          </div>
 
-        <button mat-button *ngIf="task.status === 'In Progress' && !task.is_working" (click)="advanceStatus(task)">
-          Submit for Approval
-        </button>
-        <button mat-button *ngIf="task.status === 'Revision Requested'" (click)="advanceStatus(task)">
-          Begin Revision
-        </button>
-      </mat-card-actions>
-    </mat-card>
+          <!-- ROW 3: Actions -->
+          <div class="card-actions-row">
+            <div class="action-buttons">
+              <!-- Start Work Block -->
+              <ng-container *ngIf="!task.is_working">
+                <div class="date-selector" *ngIf="!task.designer_readiness_date">
+                  <span class="date-label">Est. Finish:</span>
+                  <select class="clean-select" [(ngModel)]="task.selectedCompletionDate">
+                    <option value="today">Today</option>
+                    <option value="tomorrow">Tomorrow</option>
+                    <option value="custom">Custom...</option>
+                  </select>
+                  <input *ngIf="task.selectedCompletionDate === 'custom'" type="date" class="clean-date-input" [(ngModel)]="task.customCompletionDateStr">
+                </div>
+                <button mat-flat-button color="primary" class="start-btn" (click)="startWork(task)">
+                  <mat-icon>play_arrow</mat-icon> {{ (task.time_spent_seconds > 0 || task.status === 'In Progress') ? 'Resume Work' : 'Start Work' }}
+                </button>
+              </ng-container>
+
+              <!-- Submit Block -->
+              <ng-container *ngIf="task.is_working">
+                <button mat-stroked-button color="primary" class="pause-btn" (click)="pauseWork(task)" style="margin-right: 8px;">
+                  <mat-icon>pause</mat-icon> Pause
+                </button>
+                <button mat-flat-button color="accent" class="submit-btn" (click)="submitTask(task)">
+                  <mat-icon>cloud_upload</mat-icon> Submit Artwork
+                </button>
+              </ng-container>
+            </div>
+          </div>
+          
+        </mat-card>
+      </div>
+
+    </div>
+
+    <div *ngIf="!selectedProjectGroup" style="height: 100%;">
+      <div class="empty-state-large">
+        <mat-icon>assignment</mat-icon>
+        <h3>Select a Project</h3>
+        <p>Choose a project from the left panel to view and start working on its tasks.</p>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- PURE CSS SLIDE-IN PANEL FOR NOTES AND ACTIVITY -->
+<div class="side-panel-overlay" *ngIf="isSidePanelOpen" (click)="closeSidePanel()"></div>
+<div class="custom-side-panel" [class.open]="isSidePanelOpen">
+  
+  <div class="panel-header">
+    <h2>{{sidePanelMode === 'notes' ? 'My Notes' : 'Activity History'}}</h2>
+    <button mat-icon-button (click)="closeSidePanel()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="panel-subtitle" *ngIf="sidePanelTask">
+    {{sidePanelTask.id}} - {{sidePanelTask.composite_item_name}}
+  </div>
+
+  <div class="panel-content">
+    
+    <!-- NOTES MODE -->
+    <div *ngIf="sidePanelMode === 'notes'" style="height: 100%; display: flex; flex-direction: column;">
+      <mat-form-field appearance="outline" style="width: 100%; flex: 1;">
+        <mat-label>Notes</mat-label>
+        <textarea matInput style="height: 100%; resize: none;" [(ngModel)]="localNotes" placeholder="Type your notes here..."></textarea>
+      </mat-form-field>
+      <div style="text-align: right; margin-top: 16px;">
+        <button mat-button (click)="closeSidePanel()" style="margin-right: 8px;">Cancel</button>
+        <button mat-flat-button color="primary" (click)="saveNotes()">Save Notes</button>
+      </div>
+    </div>
+
+    <!-- ACTIVITY MODE -->
+    <div *ngIf="sidePanelMode === 'activity'">
+      <div *ngIf="activityLoading" style="padding: 24px; text-align: center;">
+        <mat-spinner diameter="30" style="margin: 0 auto;"></mat-spinner>
+      </div>
+      <div *ngFor="let log of activityLogs" class="activity-log-item">
+        <div class="log-date">{{formatActivityDate(log.timestamp)}}</div>
+        <div class="log-action">{{log.action}}</div>
+        <div *ngIf="log.comment" class="log-comment">{{log.comment}}</div>
+      </div>
+      <div *ngIf="!activityLoading && activityLogs.length === 0" style="padding: 24px; text-align: center; color: #666;">
+        No activity recorded yet.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<ng-template #uploadSubmitDialog>
+  <h2 mat-dialog-title>Submit Artwork</h2>
+  <mat-dialog-content>
+    <div style="margin-bottom: 24px; font-size: 14px; color: #555;">
+      Review the automated email that will be sent to the Supply Chain team.
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+      <mat-form-field appearance="outline" style="flex: 1;">
+        <mat-label>To</mat-label>
+        <input matInput [(ngModel)]="emailTemplate.to">
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 16px;">
+      <mat-label>Subject</mat-label>
+      <input matInput [(ngModel)]="emailTemplate.subject">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 100%;">
+      <mat-label>Email Body</mat-label>
+      <textarea matInput rows="12" [(ngModel)]="emailBodyContent"></textarea>
+    </mat-form-field>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="pendingUploadTask?.isSubmitting" (click)="confirmUploadSubmit()">
+      <mat-icon *ngIf="!pendingUploadTask?.isSubmitting">send</mat-icon>
+      <mat-spinner *ngIf="pendingUploadTask?.isSubmitting" diameter="20" style="margin-right: 8px; display: inline-block; vertical-align: middle;"></mat-spinner>
+      Send & Submit
+    </button>
+  </mat-dialog-actions>
+</ng-template>

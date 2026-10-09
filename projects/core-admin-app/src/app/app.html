@@ -1,27 +1,39 @@
-<mat-toolbar color="primary" class="topbar">
-  <button mat-icon-button (click)="toggleSidebar()">
+<ng-container *ngIf="isLoggedIn; else loginScreen">
+<header class="modern-topbar">
+  <button mat-icon-button (click)="toggleSidebar()" class="menu-btn">
     <mat-icon>menu</mat-icon>
   </button>
-  <span class="title hide-on-mobile">{{ title() }}</span>
+  <div class="brand-container hide-on-mobile">
+    <mat-icon class="brand-icon">scatter_plot</mat-icon>
+    <span class="title">{{ title() }}</span>
+  </div>
   <span class="spacer"></span>
-  <button mat-button class="search-btn">
-    <mat-icon>search</mat-icon> <span class="hide-on-mobile">Search (Ctrl+K)</span>
+  <button mat-stroked-button class="search-btn" (click)="openSpotSearch()">
+    <mat-icon>search</mat-icon> <span class="hide-on-mobile">Search (ss)</span>
   </button>
-  <button mat-raised-button color="accent" class="new-project-btn" routerLink="/new-project">
+  <button mat-flat-button color="primary" class="new-project-btn" routerLink="/new-project">
     <mat-icon>add</mat-icon> <span class="hide-on-mobile">New Project</span>
   </button>
   <lib-notification-bell [recipientRole]="'Admin'"></lib-notification-bell>
-  <div class="role-indicator hide-on-mobile">
-    <mat-icon>admin_panel_settings</mat-icon> Admin
+  <div class="role-indicator hide-on-mobile cursor-pointer" matTooltip="Admin Role">
+    <mat-icon>admin_panel_settings</mat-icon> {{ role }}
   </div>
-</mat-toolbar>
+  <button mat-icon-button color="warn" (click)="logout()" matTooltip="Logout" style="margin-left: 8px;">
+    <mat-icon>logout</mat-icon>
+  </button>
+</header>
 
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav [opened]="isSidebarOpen" mode="side" class="sidenav">
+  <mat-sidenav [opened]="isSidebarOpen" mode="side" class="sidenav" fixedInViewport="true" fixedTopGap="64">
     <mat-nav-list>
+
+      <a *ngIf="role === 'SuperAdmin' || role === 'Admin' || role === 'SalesCoordinator'" mat-list-item routerLink="/ceo-dashboard" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>insights</mat-icon>
+        <span matListItemTitle>CEO Dashboard</span>
+      </a>
       <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
         <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+        <span matListItemTitle>Operations Dashboard</span>
       </a>
       <a mat-list-item routerLink="/projects" routerLinkActive="active-link">
         <mat-icon matListItemIcon>folder</mat-icon>
@@ -29,16 +41,58 @@
       </a>
       <a mat-list-item routerLink="/design-queue" routerLinkActive="active-link">
         <mat-icon matListItemIcon>assignment</mat-icon>
-        <span matListItemTitle>Design Queue</span>
+        <span matListItemTitle style="display: flex; align-items: center; width: 100%;">
+          Design Queue
+          <span class="custom-badge" *ngIf="pendingAssignCount > 0" style="margin-left: 8px;">{{pendingAssignCount}} (A)</span>
+          <span class="custom-badge" *ngIf="pendingReviewCount > 0" style="margin-left: 4px; background-color: #ef4444; color: white;">{{pendingReviewCount}} (R)</span>
+        </span>
       </a>
-      <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
+      <a mat-list-item routerLink="/samples" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>folder_special</mat-icon>
+        <span matListItemTitle style="display: flex; align-items: center; width: 100%;">
+          Samples
+          <span class="custom-badge" *ngIf="pendingSampleCount > 0" style="margin-left: 8px;">{{pendingSampleCount}}</span>
+        </span>
+      </a>
+      <a mat-list-item routerLink="/yarn-orders" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>inventory_2</mat-icon>
+        <span matListItemTitle style="display: flex; align-items: center; width: 100%;">
+          Yarn Ordering
+          <span class="custom-badge" *ngIf="pendingYarnCount > 0" style="margin-left: 8px;">{{pendingYarnCount}}</span>
+        </span>
+      </a>
+      <a mat-list-item routerLink="/reports" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>bar_chart</mat-icon>
+        <span matListItemTitle>Reports</span>
+      </a>
+      
+      <mat-divider></mat-divider>
+      
+      <!-- Settings section -->
+      <a mat-list-item (click)="isSettingsOpen = !isSettingsOpen" style="cursor: pointer;">
         <mat-icon matListItemIcon>settings</mat-icon>
-        <span matListItemTitle>Settings</span>
+        <span matListItemTitle style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          Settings
+          <mat-icon>{{ isSettingsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </span>
       </a>
+      
+      <div *ngIf="isSettingsOpen" class="settings-submenu">
+        <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+          <span matListItemTitle>System Settings</span>
+        </a>
+
+      </div>
     </mat-nav-list>
   </mat-sidenav>
 
-  <mat-sidenav-content class="content">
+  <mat-sidenav-content class="main-content">
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
+</ng-container>
+
+<ng-template #loginScreen>
+  <lib-login role="Admin/SC" [errorMsg]="loginError" (microsoftLogin)="onMicrosoftLoginSubmit($event)"></lib-login>
+</ng-template>

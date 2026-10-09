@@ -1,22 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { Samples } from './samples';
+import { MockBuilder, MockRender } from 'ng-mocks';
 
 describe('Samples', () => {
-  let component: Samples;
-  let fixture: ComponentFixture<Samples>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Samples],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(Samples);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  beforeEach(() => {
+    return MockBuilder(Samples);
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    const fixture = MockRender(Samples);
+    expect(fixture.point.componentInstance).toBeTruthy();
   });
 });

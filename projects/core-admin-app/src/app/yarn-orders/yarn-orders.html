@@ -1,0 +1,74 @@
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0; display: flex; align-items: center; gap: 16px;">
+        Yarn Orders <span class="count-badge" style="font-size: 14px; font-weight: 500; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 9999px;">{{ orders.length }} Total Requests</span>
+      </h1>
+      <p style="color: #6b7280; margin-top: 4px;">Manage yarn requests and their status.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button mat-stroked-button (click)="exportCSV()" style="border-radius: 9999px;">
+        <mat-icon>download</mat-icon> Export CSV
+      </button>
+      <button mat-flat-button color="primary" (click)="openAddDialog()" style="border-radius: 9999px;">
+        <mat-icon>add</mat-icon> Create Yarn Request
+      </button>
+    </div>
+  </div>
+
+  <mat-card style="border-radius: 12px; border-top: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <mat-card-content style="padding: 0; overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <tr>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Project ID</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Carpet ID</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Color Code</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Qty (kg)</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Purpose</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Status</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Requested By</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Date</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let element of orders" style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" class="hover:bg-gray-50">
+            <td style="padding: 16px 24px; color: #2563eb; font-weight: 500;">{{element.project_id}}</td>
+            <td style="padding: 16px 24px; color: #4b5563;">{{element.carpet_id}}</td>
+            <td style="padding: 16px 24px; font-weight: 600; color: #111827;">{{element.color_code}}</td>
+            <td style="padding: 16px 24px; font-weight: 500; color: #1f2937;">{{element.quantity_kg}}</td>
+            <td style="padding: 16px 24px; color: #4b5563;">{{element.purpose}}</td>
+            <td style="padding: 16px 24px;">
+              <span class="status-badge" [ngClass]="element.status.toLowerCase()">
+                {{element.status}}
+              </span>
+            </td>
+            <td style="padding: 16px 24px; color: #4b5563;">{{element.requested_by}}</td>
+            <td style="padding: 16px 24px; color: #6b7280;">
+              {{ element.requested_at?.toDate ? (element.requested_at.toDate() | date:'shortDate') : (element.requested_at | date:'shortDate') }}
+            </td>
+            <td style="padding: 16px 24px; text-align: right;">
+              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button mat-icon-button color="accent" *ngIf="element.status === 'Pending'" (click)="markAsOrdered(element)" title="Mark as Ordered">
+                  <mat-icon>shopping_cart</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" *ngIf="element.status === 'Ordered'" (click)="markAsArrived(element)" title="Mark as Arrived">
+                  <mat-icon>inventory_2</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteOrder(element)" title="Delete Request">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="orders.length === 0">
+            <td colspan="9" style="padding: 48px; text-align: center; color: #6b7280;">
+              No yarn order requests found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

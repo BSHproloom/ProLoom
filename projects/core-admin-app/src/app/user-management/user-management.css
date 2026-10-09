@@ -1,0 +1,38 @@
+.user-management-container {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+table {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.role-badge.admin { background: #e3f2fd; color: #1565c0; }
+.role-badge.am { background: #e8f5e9; color: #2e7d32; }
+.role-badge.designer { background: #fff3e0; color: #e65100; }
+.role-badge.sales { background: #f3e5f5; color: #6a1b9a; }
+
+.password-display {
+  font-family: monospace;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.no-password {
+  color: #757575;
+  font-style: italic;
+}
+
+.compact-field {
+  margin-bottom: -1.25em;
+  width: 150px;
+}

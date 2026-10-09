@@ -1,15 +1,27 @@
-.topbar {
+.modern-topbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 10;
-  position: relative;
-  background-color: #673ab7; /* Different color for designer app */
-  color: white;
+  height: 64px;
+  padding: 0 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  z-index: 1000;
+  position: sticky;
+  top: 0;
+}
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-icon {
+  color: #2563eb;
 }
 .title {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 20px;
   margin-right: 16px;
 }
 .spacer {
@@ -32,14 +44,56 @@
   width: 250px;
   background: #ffffff;
   border-right: 1px solid #e0e0e0;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+}
+
+.sidenav.collapsed {
+  width: 90px; /* wider to fit text on one line */
+}
+
+/* Override default MDC list item layout when collapsed */
+.sidenav.collapsed .mat-mdc-list-item,
+.sidenav.collapsed .mdc-list-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 72px !important; /* taller to fit stacked content */
+  padding: 8px 4px !important;
+}
+
+.sidenav.collapsed .mdc-list-item__start,
+.sidenav.collapsed .mdc-list-item__content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+.sidenav.collapsed .mat-mdc-list-item-title {
+  display: block;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
+  margin-top: 4px;
+  overflow: visible;
+}
+
+/* Ensure icons are centered when collapsed */
+.sidenav.collapsed .mat-mdc-list-item-icon {
+  margin-right: 0 !important;
+  margin-bottom: 2px;
 }
 .content {
   padding: 24px;
-  overflow: auto;
 }
 .active-link {
-  background: rgba(103, 58, 183, 0.08);
-  color: #673ab7;
+  background: #eff6ff;
+  color: #2563eb;
+  border-right: 3px solid #2563eb;
 }
 
 @media (max-width: 768px) {
@@ -52,4 +106,15 @@
   .sidenav {
     width: 200px;
   }
+}
+
+
+/* Override MDC rounded shapes for simple square navigation */
+::ng-deep .mat-mdc-list-item {
+  border-radius: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+::ng-deep .mdc-list-item {
+  border-radius: 0 !important;
 }

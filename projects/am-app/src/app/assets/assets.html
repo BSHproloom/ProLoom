@@ -1,0 +1,29 @@
+<div class="assets-container">
+  <div class="header">
+    <h1>Company Assets</h1>
+    <p>Download or share brochures, catalogs, and guidelines.</p>
+  </div>
+
+  <div class="assets-list">
+    <div class="asset-card mat-elevation-z2" *ngFor="let asset of assetService.assets$ | async">
+      <div class="asset-icon">
+        <mat-icon>picture_as_pdf</mat-icon>
+      </div>
+      <div class="asset-info">
+        <h3>{{asset.name}}</h3>
+        <span>{{ (asset.size / 1024 / 1024) | number:'1.2-2' }} MB • {{asset.uploadedAt?.toDate() | date}}</span>
+      </div>
+      <div class="asset-actions">
+        <button mat-icon-button color="primary" (click)="downloadAndShare(asset)" [disabled]="downloading[asset.id]">
+          <mat-icon *ngIf="!downloading[asset.id]">share</mat-icon>
+          <mat-icon *ngIf="downloading[asset.id]" class="spin">sync</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="(assetService.assets$ | async)?.length === 0" class="empty-state">
+      <mat-icon>folder_open</mat-icon>
+      <p>No assets available.</p>
+    </div>
+  </div>
+</div>

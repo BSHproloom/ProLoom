@@ -1,0 +1,139 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">CEO Dashboard</h1>
+      <p class="text-gray-500 mt-1">High-level view of production health and team performance.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Bottlenecks Panel -->
+    <mat-card class="aesthetic-card col-span-1 border-t-4 border-t-red-500">
+      <mat-card-header class="pb-4 border-b border-gray-100">
+        <div mat-card-avatar class="bg-red-100 text-red-600 flex items-center justify-center rounded-full w-10 h-10">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <mat-card-title class="text-lg font-bold">Workflow Bottlenecks</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="pt-4">
+        <div class="mb-4">
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-sm font-medium text-gray-600">Design Backlog</span>
+            <span class="text-2xl font-bold text-gray-900">{{designBacklogCount}}</span>
+          </div>
+          <p class="text-xs text-gray-500">Carpets assigned or waiting for artwork</p>
+        </div>
+        
+        <div>
+          <div class="flex justify-between items-end mb-1">
+            <span class="text-sm font-medium text-gray-600">Pending Client Approvals</span>
+            <span class="text-2xl font-bold text-gray-900">{{pendingClientCount}}</span>
+          </div>
+          <p class="text-xs text-gray-500">Carpets with AM or waiting for client</p>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-red-100" *ngIf="bottleneckCarpets.length > 0">
+          <h4 class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Critical Bottlenecks (> 2 Days)</h4>
+          <ul class="space-y-2">
+            <li *ngFor="let b of bottleneckCarpets" class="text-sm flex justify-between">
+              <span class="text-gray-700 truncate" style="max-width: 60%;" [title]="b.carpet.composite_item_name">{{b.carpet.composite_item_name}}</span>
+              <span class="text-red-600 font-medium">{{b.daysStuck}} days</span>
+            </li>
+          </ul>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- 30-Day Loom Forecast -->
+    <mat-card class="aesthetic-card col-span-1 lg:col-span-2 border-t-4 border-t-blue-500">
+      <mat-card-header class="pb-4 border-b border-gray-100">
+        <div mat-card-avatar class="bg-blue-100 text-blue-600 flex items-center justify-center rounded-full w-10 h-10">
+          <mat-icon>calendar_view_week</mat-icon>
+        </div>
+        <mat-card-title class="text-lg font-bold">30-Day Loom Forecast</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="pt-4 overflow-x-auto">
+        <div class="loom-matrix">
+          <div class="loom-row header-row">
+            <div class="loom-label">Loom</div>
+            <div class="timeline-container">
+              <!-- Render days 1-30 -->
+              <div class="day-header" *ngFor="let day of forecastDays">
+                {{day.date.getDate()}}/{{day.date.getMonth()+1}}
+              </div>
+            </div>
+          </div>
+          
+          <div class="loom-row" *ngFor="let loomId of [1,2,3,4,5,6,7,8,9,10,11,12]">
+            <div class="loom-label font-medium text-gray-700">Loom {{loomId}}</div>
+            <div class="timeline-container relative bg-gray-50 rounded-r-md border border-l-0 border-gray-200">
+              <!-- Grid lines -->
+              <div class="grid-line" *ngFor="let day of forecastDays"></div>
+              
+              <!-- Carpets -->
+              <div class="scheduled-carpet absolute bg-blue-500 text-white text-xs px-2 py-1 rounded shadow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
+                   *ngFor="let run of getRunsForLoom(loomId)"
+                   [style.left]="run.leftPercentage + '%'"
+                   [style.width]="run.widthPercentage + '%'"
+                   [title]="run.carpet.composite_item_name + ' (Est. End: ' + formatDate(run.carpet.loom_end_date) + ')'">
+                {{run.carpet.composite_item_name}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Team Performance: Designers -->
+    <mat-card class="aesthetic-card">
+      <mat-card-header class="pb-4 border-b border-gray-100">
+        <div mat-card-avatar class="bg-purple-100 text-purple-600 flex items-center justify-center rounded-full w-10 h-10">
+          <mat-icon>brush</mat-icon>
+        </div>
+        <mat-card-title class="text-lg font-bold">Designer Throughput (30 Days)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-0">
+        <table mat-table [dataSource]="designerStats" class="w-full">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-gray-500 font-medium"> Designer </th>
+            <td mat-cell *matCellDef="let d" class="font-medium text-gray-900"> {{d.name}} </td>
+          </ng-container>
+          <ng-container matColumnDef="completed">
+            <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-gray-500 font-medium text-right"> Completed </th>
+            <td mat-cell *matCellDef="let d" class="text-right font-bold text-purple-600"> {{d.completed}} </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['name', 'completed']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['name', 'completed'];" class="hover:bg-gray-50"></tr>
+        </table>
+        <div *ngIf="designerStats.length === 0" class="p-4 text-center text-gray-500">No activity in last 30 days.</div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Team Performance: AMs -->
+    <mat-card class="aesthetic-card">
+      <mat-card-header class="pb-4 border-b border-gray-100">
+        <div mat-card-avatar class="bg-green-100 text-green-600 flex items-center justify-center rounded-full w-10 h-10">
+          <mat-icon>speed</mat-icon>
+        </div>
+        <mat-card-title class="text-lg font-bold">AM Turnaround Speed (30 Days)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-0">
+        <table mat-table [dataSource]="amStats" class="w-full">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-gray-500 font-medium"> Account Manager </th>
+            <td mat-cell *matCellDef="let a" class="font-medium text-gray-900"> {{a.name}} </td>
+          </ng-container>
+          <ng-container matColumnDef="speed">
+            <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-gray-500 font-medium text-right"> Avg Approval Time </th>
+            <td mat-cell *matCellDef="let a" class="text-right font-bold text-green-600"> {{a.avgDays | number:'1.1-1'}} days </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['name', 'speed']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['name', 'speed'];" class="hover:bg-gray-50"></tr>
+        </table>
+        <div *ngIf="amStats.length === 0" class="p-4 text-center text-gray-500">No approvals in last 30 days.</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

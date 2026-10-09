@@ -1,0 +1,59 @@
+<div style="padding: 24px; background-color: #f9fafb; min-height: 100vh;">
+  <div style="margin-bottom: 32px;">
+    <h1 style="font-size: 28px; font-weight: bold; color: #111827; margin: 0;">User Passwords</h1>
+    <p style="color: #6b7280; margin-top: 4px;">Set simple passwords for AMs and Designers so they can log in.</p>
+  </div>
+
+  <mat-card style="border-radius: 12px; border-top: 4px solid #10b981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <mat-card-content style="padding: 0;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <thead style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <tr>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Name</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Role</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563;">Password</th>
+            <th style="padding: 16px 24px; font-weight: 600; color: #4b5563; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users" style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" class="hover:bg-gray-50">
+            <td style="padding: 16px 24px; font-weight: 600; color: #1f2937;">{{user.name}}</td>
+            <td style="padding: 16px 24px;">
+              <span class="role-badge" [ngClass]="user.role.toLowerCase()">{{user.role}}</span>
+            </td>
+            <td style="padding: 16px 24px;">
+              <ng-container *ngIf="editingUserId === user.id; else displayMode">
+                <mat-form-field appearance="outline" class="compact-field" style="margin-bottom: -1.25em;">
+                  <mat-label>New Password</mat-label>
+                  <input matInput [(ngModel)]="editPasswordValue" (keyup.enter)="savePassword(user)">
+                </mat-form-field>
+              </ng-container>
+              <ng-template #displayMode>
+                <span style="color: #4b5563; font-weight: 500;" *ngIf="user.password">{{user.password}}</span>
+                <span style="color: #9ca3af; font-style: italic;" *ngIf="!user.password">Not Set</span>
+              </ng-template>
+            </td>
+            <td style="padding: 16px 24px; text-align: right;">
+              <ng-container *ngIf="editingUserId === user.id; else editBtn">
+                <button mat-icon-button color="primary" (click)="savePassword(user)">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="cancelEdit()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </ng-container>
+              <ng-template #editBtn>
+                <button mat-button color="primary" (click)="startEdit(user)" style="border-radius: 9999px;">Set Password</button>
+              </ng-template>
+            </td>
+          </tr>
+          <tr *ngIf="users.length === 0">
+            <td colspan="4" style="padding: 48px; text-align: center; color: #6b7280;">
+              No users found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>
