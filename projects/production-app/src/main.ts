@@ -7,3 +7,4 @@ import 'firebase/storage';
 
 bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err));
 
+console.log(Automated deployment via GitHub Actions successful!);
