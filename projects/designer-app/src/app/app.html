@@ -1,3 +1,12 @@
+<ng-container *ngIf="isPopup">
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background: #f8fafc; color: #334155; flex-direction: column;">
+    <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #0078d4; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+    <h2>Authenticating... Please wait.</h2>
+    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="!isPopup">
 <ng-container *ngIf="currentDesigner; else loginScreen">
   <header class="modern-topbar">
     <button mat-icon-button (click)="toggleSidebar()" class="menu-btn">
@@ -61,3 +70,5 @@
 <ng-template #loginScreen>
   <lib-login role="Designer" [errorMsg]="loginError" (microsoftLogin)="onMicrosoftLoginSubmit($event)"></lib-login>
 </ng-template>
+
+</ng-container>
