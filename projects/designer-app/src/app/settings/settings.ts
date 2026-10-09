@@ -158,12 +158,7 @@ designer: User | null = null;
   }
 
   async logout() {
-    try {
-      if (this.msAccount) {
-        // Clear Microsoft session from the browser to prevent next user from inheriting it
-        this.msalService.instance.clearCache();
-      }
-    } catch(e) {}
+    // Removed msalService.instance.clearCache() so the Microsoft session stays saved forever!
     localStorage.removeItem('current_designer');
     window.location.reload();
   }
