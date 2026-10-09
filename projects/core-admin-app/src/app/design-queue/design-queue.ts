@@ -14,7 +14,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
-import { Carpet, CarpetService, UserService, User, ActivityLogService, NotificationService } from 'shared-core';
+import { Carpet, CarpetService, UserService, User, ActivityLogService, NotificationService, ProjectService } from 'shared-core';
 
 @Component({
   selector: 'app-design-queue',
@@ -42,6 +42,7 @@ export class DesignQueue implements OnInit {
   private dialog = inject(MatDialog);
   private activityLogService = inject(ActivityLogService);
   private notifService = inject(NotificationService);
+  private projectService = inject(ProjectService);
 
   designers: User[] = [];
   
@@ -147,46 +148,58 @@ export class DesignQueue implements OnInit {
       this.designers = users.filter(u => u.role === 'Designer');
     });
 
-            this.carpetService.getAllCarpets().subscribe(carpets => {
-      this.dataSource.data = carpets.filter(c => c.status === 'Need to Assign');
-      this.reviewDataSource.data = carpets.filter(c => c.status === 'Review Pending' || c.status === 'Pending SC Review');
-      
-      const active = carpets.filter(c => c.status === 'Assigned' || c.status === 'In Progress');
-      this.activeDataSource.data = active;
-      
-      const sortedActive = [...active].sort((a, b) => (a.designer || '').localeCompare(b.designer || ''));
-      this.flattenedActiveWork = [];
-      let currentDesigner = null;
-      for (const carpet of sortedActive) {
-        if (carpet.designer !== currentDesigner) {
-          this.flattenedActiveWork.push({ designer: carpet.designer || 'Unassigned', carpet: carpet });
-          currentDesigner = carpet.designer;
-        } else {
-          this.flattenedActiveWork.push({ designer: null, carpet: carpet });
-        }
-      }
+    this.projectService.getProjects().subscribe(projects => {
+        const projectClientMap: { [id: string]: string } = {};
+        projects.forEach(p => {
+            projectClientMap[p.id] = p.client_name || 'Unknown Client';
+        });
 
-      const sentToAm = carpets.filter(c => c.status === 'Sent to AM');
-      this.sentToAmDataSource.data = sentToAm;
-      
-      const groupMap = new Map<string, any>();
-      for (const c of sentToAm) {
-        if (!groupMap.has(c.project_fk)) {
-          groupMap.set(c.project_fk, {
-            project_id: c.project_fk,
-            project_name: c.project_name,
-            isExpanded: true,
-            carpets: []
-          });
-        }
-        groupMap.get(c.project_fk).carpets.push(c);
-      }
-      this.sentToAmGroups = Array.from(groupMap.values());
+        this.carpetService.getAllCarpets().subscribe(carpets => {
+          // Augment carpets with client name
+          const augmentedCarpets = carpets.map(c => ({
+              ...c,
+              client_name: projectClientMap[c.project_fk] || 'Unknown Client'
+          }));
+          
+          this.dataSource.data = augmentedCarpets.filter(c => c.status === 'Need to Assign');
+          this.reviewDataSource.data = augmentedCarpets.filter(c => c.status === 'Review Pending' || c.status === 'Pending SC Review');
+          
+          const active = augmentedCarpets.filter(c => c.status === 'Assigned' || c.status === 'In Progress');
+          this.activeDataSource.data = active;
+          
+          const sortedActive = [...active].sort((a, b) => (a.designer || '').localeCompare(b.designer || ''));
+          this.flattenedActiveWork = [];
+          let currentDesigner = null;
+          for (const carpet of sortedActive) {
+            if (carpet.designer !== currentDesigner) {
+              this.flattenedActiveWork.push({ designer: carpet.designer || 'Unassigned', carpet: carpet });
+              currentDesigner = carpet.designer;
+            } else {
+              this.flattenedActiveWork.push({ designer: null, carpet: carpet });
+            }
+          }
 
-      this.pendingUndertakingDataSource.data = carpets.filter(c => c.status === 'Pending Undertaking');
+          const sentToAm = augmentedCarpets.filter(c => c.status === 'Sent to AM');
+          this.sentToAmDataSource.data = sentToAm;
+          
+          const groupMap = new Map<string, any>();
+          for (const c of sentToAm) {
+            if (!groupMap.has(c.project_fk)) {
+              groupMap.set(c.project_fk, {
+                project_id: c.project_fk,
+                project_name: c.project_name,
+                isExpanded: true,
+                carpets: []
+              });
+            }
+            groupMap.get(c.project_fk).carpets.push(c);
+          }
+          this.sentToAmGroups = Array.from(groupMap.values());
+
+          this.pendingUndertakingDataSource.data = augmentedCarpets.filter(c => c.status === 'Pending Undertaking');
+        });
     });
   }
-
   isAllSelected() {
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSource.data.length;

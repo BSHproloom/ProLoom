@@ -14,8 +14,14 @@
         <div class="item-main" style="align-items: flex-start; display: flex; flex-direction: row; width: 100%; gap: 16px;">
           <div class="item-details" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
               <div class="item-title-row" style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px;">
-              <div class="item-title" style="margin: 0;">{{task.composite_item_name}} <span class="item-id">({{task.id}})</span></div>
-              <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;"><strong>Project:</strong> {{task.project_name}} | <strong>Designer:</strong> {{task.designer}} | <strong>Type:</strong> {{task.type_of_work === 'Sample' ? 'Sample' : (task.type_of_work === 'Production files' ? 'Production File' : (task.status.includes('Revision') || (task.revision || 0) > 0 ? 'Revision' : 'New Artwork'))}} | <strong>Time Spent:</strong> {{formatTime(task.time_spent_seconds)}}</div>
+                            <div class="item-sub" style="margin: 0; font-size: 13px; color: #64748b;">
+                <strong>Client:</strong> {{task.client_name}} | 
+                <strong>Project ID:</strong> {{task.project_fk}} | 
+                <strong>Project:</strong> {{task.project_name}} | 
+                <strong>SKU/Area:</strong> {{task.composite_item_name}} <span class="item-id">({{task.id}})</span> | 
+                <strong>Type:</strong> {{task.type_of_work === 'Sample' ? 'Sample' : (task.type_of_work === 'Production files' ? 'Production File' : (task.status.includes('Revision') || (task.revision || 0) > 0 ? 'Revision' : 'New Artwork'))}} | 
+                <strong>Time Spent:</strong> {{formatTime(task.time_spent_seconds)}}
+              </div>
             </div>
             
             <mat-form-field appearance="outline" class="review-comment-field" style="width: 100%; margin-bottom: -1.25em;">
