@@ -157,7 +157,13 @@ designer: User | null = null;
     } catch(e) {}
   }
 
-  logout() {
+  async logout() {
+    try {
+      if (this.msAccount) {
+        // Clear Microsoft session from the browser to prevent next user from inheriting it
+        this.msalService.instance.clearCache();
+      }
+    } catch(e) {}
     localStorage.removeItem('current_designer');
     window.location.reload();
   }
