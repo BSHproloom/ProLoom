@@ -1,5 +1,6 @@
 export interface Carpet {
   id: string;
+  client_name?: string;
   project_name?: string;
   selectedDesigner?: string; // SKU No
   project_fk: string; // Parent Project ID
