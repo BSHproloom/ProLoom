@@ -18,76 +18,32 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Inject } from '@angular/core';
 
 @Component({
-  selector: 'app-email-draft-dialog',
-  standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, FormsModule],
-  template: `
-    <h2 mat-dialog-title>Review Email Draft</h2>
-    <mat-dialog-content>
-      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px; min-width: 500px;">
-        <mat-form-field appearance="outline">
-          <mat-label>To</mat-label>
-          <input matInput [(ngModel)]="data.to">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>CC</mat-label>
-          <input matInput [(ngModel)]="data.cc">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Subject</mat-label>
-          <input matInput [(ngModel)]="data.subject">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Message Body</mat-label>
-          <textarea matInput rows="10" [(ngModel)]="data.body"></textarea>
-        </mat-form-field>
-      </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" [mat-dialog-close]="data">Send Email</button>
-    </mat-dialog-actions>
-  `
-})
-export class EmailDraftDialog {
-  constructor(
-    public dialogRef: MatDialogRef<EmailDraftDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: { to: string, cc: string, subject: string, body: string }
-  ) {}
-}
-
-@Component({
   selector: 'app-add-carpet-dialog',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatDialogModule],
   template: `
     <h2 mat-dialog-title>Add Carpet to Project</h2>
     <mat-dialog-content>
-      <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px; min-width: 300px;">
+      <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px; min-width: 400px;">
         <mat-form-field appearance="outline">
           <mat-label>Carpet Name / Identifier</mat-label>
-          <input matInput formControlName="composite_item_name" placeholder="e.g. Lobby Main Rug" required>
+          <input matInput formControlName="name" placeholder="e.g. Lobby Main Rug" required>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Carpet Type</mat-label>
           <mat-select formControlName="carpet_type" required>
             <mat-option value="Rug">Rug</mat-option>
             <mat-option value="wall to wall">Wall to Wall</mat-option>
-            <mat-option value="inserted">Inserted</mat-option>
           </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Size</mat-label>
-          <input matInput formControlName="size" placeholder="L x W" required>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Quality</mat-label>
           <mat-select formControlName="quality" required>
-            <mat-option value="HT-450">HT-450</mat-option>
-            <mat-option value="HT-550">HT-550</mat-option>
-            <mat-option value="HT-650">HT-650</mat-option>
-            <mat-option value="HT-750">HT-750</mat-option>
-            <mat-option value="HT-850">HT-850</mat-option>
+            <mat-option value="Hand Tufted">Hand Tufted</mat-option>
+            <mat-option value="Hand Knotted">Hand Knotted</mat-option>
+            <mat-option value="Machine Tufted">Machine Tufted</mat-option>
+            <mat-option value="Axminster">Axminster</mat-option>
+            <mat-option value="Flatweave">Flatweave</mat-option>
           </mat-select>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -99,9 +55,28 @@ export class EmailDraftDialog {
             <mat-option value="75% Silk and 25% Wool">75% Silk and 25% Wool</mat-option>
           </mat-select>
         </mat-form-field>
+        <div style="display: flex; gap: 16px;">
+          <mat-form-field appearance="outline" style="flex: 1;">
+            <mat-label>Width (m)</mat-label>
+            <input matInput type="number" formControlName="width" (input)="calc()">
+          </mat-form-field>
+          <mat-form-field appearance="outline" style="flex: 1;">
+            <mat-label>Height (m)</mat-label>
+            <input matInput type="number" formControlName="height" (input)="calc()">
+          </mat-form-field>
+        </div>
         <mat-form-field appearance="outline">
-          <mat-label>No. of Rugs</mat-label>
-          <input matInput type="number" formControlName="no_of_rugs" required min="1">
+          <mat-label>Total Area (sqm)</mat-label>
+          <input matInput type="number" formControlName="area" readonly>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Qty</mat-label>
+          <input matInput type="number" formControlName="quantity" required min="1">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" *ngIf="form.get('carpet_type')?.value === 'wall to wall'">
+          <mat-label>Wall to Wall Advanced Details</mat-label>
+          <textarea matInput formControlName="taher_details" rows="2"></textarea>
         </mat-form-field>
       </form>
     </mat-dialog-content>
@@ -118,13 +93,22 @@ export class AddCarpetDialog {
     public dialogRef: MatDialogRef<AddCarpetDialog>
   ) {
     this.form = this.fb.group({
-      composite_item_name: ['', Validators.required],
-      size: ['', Validators.required],
+      name: ['', Validators.required],
+      width: [null],
+      height: [null],
+      area: [null],
       quality: ['', Validators.required],
-      carpet_type: ['Rug', Validators.required],
       material: ['', Validators.required],
-      no_of_rugs: [1, [Validators.required, Validators.min(1)]]
+      carpet_type: ['Rug', Validators.required],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      taher_details: ['']
     });
+  }
+
+  calc() {
+    const w = this.form.get('width')?.value || 0;
+    const h = this.form.get('height')?.value || 0;
+    this.form.patchValue({ area: (w * h) || 0 });
   }
 
   submit() {
@@ -132,6 +116,7 @@ export class AddCarpetDialog {
       this.dialogRef.close(this.form.value);
     }
   }
+}
 }
 
 @Component({
@@ -295,7 +280,12 @@ export class ProjectDetail implements OnInit {
     });
 
     this.activityLogService.getLogsForProject(this.projectId).subscribe(logs => {
-      this.logs = logs;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      this.logs = logs.filter(l => {
+        const d = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
+        return d >= cutoff;
+      });
     });
   }
 
@@ -356,7 +346,7 @@ export class ProjectDetail implements OnInit {
     return Math.floor((now - updateTime) / (1000 * 60 * 60 * 24));
   }
 
-  openAddCarpetDialog() {
+  async openAddCarpetDialog() {
     const dialogRef = this.dialog.open(AddCarpetDialog, {
       width: '400px'
     });
@@ -364,17 +354,56 @@ export class ProjectDetail implements OnInit {
     dialogRef.afterClosed().subscribe(async result => {
       if (result) {
         try {
+          // Generate SKU dynamically based on existing carpet count
+          let count = this.carpets.length + 1;
+          // In case there's an existing SKU with this number, we could potentially loop, but for now length+1 works.
+          let sku = `${this.projectId}_${String(count).padStart(2, '0')}`;
+          
+          let folderLink = '';
+          let folderPath = '';
+          try {
+            // Generate SharePoint folder just like new project creation
+            // We need appSettings for the sharepointSiteUrl
+            const { firstValueFrom } = await import('rxjs');
+            const settings = await firstValueFrom(this.settingsService.getSettings());
+            
+            folderLink = await this.graphService.createProjectWorkspace(
+              this.project.project_name, 
+              sku, 
+              settings?.sharepointSiteUrl, 
+              'ProLoom_Workspace'
+            );
+            folderPath = 'ProLoom_Workspace/' + this.project.project_name + '/' + sku;
+          } catch(err) {
+            console.error('SharePoint folder creation failed', err);
+            alert('Note: SharePoint folder generation failed for this carpet. You may need to create it manually.');
+          }
+
           const carpetData = {
-            ...result,
+            id: sku, // Explicitly set the ID to our SKU
+            composite_item_name: result.name, // Map UI name back to model field
+            carpet_type: result.carpet_type,
+            width: result.width || 0,
+            height: result.height || 0,
+            area: result.area || 0,
+            quality: result.quality,
+            material: result.material,
+            no_of_rugs: result.quantity,
+            taher_details: result.taher_details || '',
+            size: (result.width && result.height) ? `${result.width}x${result.height}` : '',
             project_fk: this.projectId,
+            client_name: this.project.client_name,
             designer: '',
             status: 'Need to Assign',
             is_working: false,
-            time_spent_seconds: 0
+            time_spent_seconds: 0,
+            designer_folder_link: folderLink,
+            designer_folder_path: folderPath
           };
+          
           await this.carpetService.addCarpet(carpetData);
-          alert('Carpet successfully added!');
-          this.loadData(); // Reload carpets list
+          alert('Carpet successfully added and SharePoint folder created!');
+          this.loadData();
         } catch (e) {
           console.error(e);
           alert('Failed to add carpet.');

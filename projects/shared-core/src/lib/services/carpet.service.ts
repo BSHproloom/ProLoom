@@ -119,15 +119,9 @@ export class CarpetService {
     const skuId = `BSH_CC_${nextSkuNum.toString().padStart(5, '0')}`;
     
     const newCarpet = {
-      composite_item_name: carpetData.name,
-      size: carpetData.size,
-      width: carpetData.width,
-      height: carpetData.height,
-      area: carpetData.area,
-      quality: carpetData.quality,
-      no_of_rugs: carpetData.quantity,
-      project_fk: carpetData.project_fk,
-      designer: carpetData.designer || '',
+      ...carpetData,
+      composite_item_name: carpetData.name || carpetData.composite_item_name,
+      no_of_rugs: carpetData.quantity || carpetData.no_of_rugs,
       yarn_sheet_status: 'Pending',
       status: carpetData.status || 'Need to Assign',
       is_working: carpetData.is_working || false,
@@ -135,9 +129,13 @@ export class CarpetService {
       designer_readiness_date: null,
       start_time: null
     };
+    
+    // Explicitly use the provided ID if present, otherwise use the generated SKU
+    const finalId = carpetData.id || skuId;
 
-    await setDoc(doc(db, 'carpets', skuId), newCarpet);
-  return skuId;
+
+    await setDoc(doc(db, 'carpets', finalId), newCarpet);
+  return finalId;
   }
 
   /**
