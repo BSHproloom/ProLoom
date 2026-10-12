@@ -133,19 +133,26 @@ designer: User | null = null;
   }
 
   checkMsAccount() {
-    this.msAccount = this.msalService.instance.getAllAccounts()[0] || null;
+    this.msAccount = this.msalService.instance.getActiveAccount() || this.msalService.instance.getAllAccounts()[0] || null;
+    if (this.msAccount && !this.msalService.instance.getActiveAccount()) {
+      this.msalService.instance.setActiveAccount(this.msAccount);
+    }
   }
 
   async connectMicrosoft() {
     try {
-      await this.msalService.instance.loginPopup({
-        scopes: ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All'], redirectUri: window.location.origin + '/auth.html'
+      const res = await this.msalService.instance.loginPopup({
+        scopes: ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All'],
+        redirectUri: window.location.origin + '/auth.html'
       });
+      if (res.account) {
+        this.msalService.instance.setActiveAccount(res.account);
+      }
       this.checkMsAccount();
       this.snackBar.open('Microsoft Account Connected successfully!', 'Close', { duration: 3000 });
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      this.snackBar.open('Failed to connect Microsoft Account', 'Close', { duration: 3000 });
+      this.snackBar.open('Failed to connect Microsoft Account: ' + (e?.message || e), 'Close', { duration: 4000 });
     }
   }
 

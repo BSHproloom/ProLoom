@@ -177,42 +177,103 @@ export class ProjectService {
     }
   }
 
-    async clearAllData() {
-    const qProjects = query(collection(db, 'projects'));
-    const snapshotProjects = await getDocs(qProjects);
-    const deleteProjects = snapshotProjects.docs.map(doc => deleteDoc(doc.ref));
-    
-    const qCarpets = query(collection(db, 'carpets'));
-    const snapshotCarpets = await getDocs(qCarpets);
-    const deleteCarpets = snapshotCarpets.docs.map(doc => deleteDoc(doc.ref));
+  async clearAllData() {
+    const { collection, getDocs, deleteDoc } = await import('firebase/firestore');
+    const collectionsToClear = ['projects', 'carpets', 'samples', 'activity_logs', 'time_logs', 'yarn_orders', 'notifications'];
+    const deletePromises: Promise<void>[] = [];
+    for (const colName of collectionsToClear) {
+      const snap = await getDocs(collection(db, colName));
+      snap.docs.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+    }
+    await Promise.all(deletePromises);
+    console.log('All collections cleared from Firestore.');
+  }
 
-    const qSamples = query(collection(db, 'samples'));
-    const snapshotSamples = await getDocs(qSamples);
-    const deleteSamples = snapshotSamples.docs.map(doc => deleteDoc(doc.ref));
+  async clearAllActivityLogs(): Promise<number> {
+    const { collection, getDocs, deleteDoc } = await import('firebase/firestore');
+    const snap = await getDocs(collection(db, 'activity_logs'));
+    const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deletePromises);
+    return snap.docs.length;
+  }
 
-    const qActivities = query(collection(db, 'activity_logs'));
-    const snapshotActivities = await getDocs(qActivities);
-    const deleteActivities = snapshotActivities.docs.map(doc => deleteDoc(doc.ref));
+  async cleanOrphanLogs(): Promise<number> {
+    const { collection, getDocs, deleteDoc } = await import('firebase/firestore');
+    const [projectsSnap, carpetsSnap, logsSnap] = await Promise.all([
+      getDocs(collection(db, 'projects')),
+      getDocs(collection(db, 'carpets')),
+      getDocs(collection(db, 'activity_logs'))
+    ]);
 
-    const qTimeLogs = query(collection(db, 'time_logs'));
-    const snapshotTimeLogs = await getDocs(qTimeLogs);
-    const deleteTimeLogs = snapshotTimeLogs.docs.map(doc => deleteDoc(doc.ref));
+    const projectIds = new Set(projectsSnap.docs.map(d => d.id));
+    const carpetIds = new Set(carpetsSnap.docs.map(d => d.id));
 
-    await Promise.all([...deleteProjects, ...deleteCarpets, ...deleteSamples, ...deleteActivities, ...deleteTimeLogs]);
-    console.log('All project, carpet, sample, activity_logs, and time_logs cleared from Firestore.');
+    let deletedCount = 0;
+    const deletePromises: Promise<void>[] = [];
+
+    logsSnap.docs.forEach(docSnap => {
+      const data = docSnap.data();
+      const projId = data['project_id'];
+      const carpId = data['carpet_id'];
+
+      const projectExists = projId && projectIds.has(projId);
+      const carpetExists = carpId && carpetIds.has(carpId);
+
+      if (!projectExists && !carpetExists) {
+        deletePromises.push(deleteDoc(docSnap.ref));
+        deletedCount++;
+      }
+    });
+
+    await Promise.all(deletePromises);
+    return deletedCount;
   }
 
   async deleteProject(projectId: string) {
-    const { doc } = await import('firebase/firestore');
-    // Delete the project
-    const docRef = doc(db, 'projects', projectId);
-    await deleteDoc(docRef);
+    const { doc, query, collection, where, getDocs, deleteDoc } = await import('firebase/firestore');
+    
+    // 1. Get associated carpets
+    const qCarpets = query(collection(db, 'carpets'), where('project_fk', '==', projectId));
+    const carpetsSnap = await getDocs(qCarpets);
+    const carpetIds = carpetsSnap.docs.map(d => d.id);
 
-    // Delete associated carpets
-    const q = query(collection(db, 'carpets'), where('project_fk', '==', projectId));
-    const snapshot = await getDocs(q);
-    const deletePromises = snapshot.docs.map(carpetDoc => deleteDoc(carpetDoc.ref));
-    await Promise.all(deletePromises);
+    // 2. Delete carpets
+    const deleteCarpets = carpetsSnap.docs.map(d => deleteDoc(d.ref));
+
+    // 3. Delete activity_logs for this project ID
+    const qActProj = query(collection(db, 'activity_logs'), where('project_id', '==', projectId));
+    const snapActProj = await getDocs(qActProj);
+    const deleteActProj = snapActProj.docs.map(d => deleteDoc(d.ref));
+
+    // 4. Delete activity_logs for each associated carpet ID
+    const deleteActCarpets: Promise<void>[] = [];
+    for (const cId of carpetIds) {
+      const qActCarpet = query(collection(db, 'activity_logs'), where('carpet_id', '==', cId));
+      const snapActCarpet = await getDocs(qActCarpet);
+      snapActCarpet.docs.forEach(d => deleteActCarpets.push(deleteDoc(d.ref)));
+    }
+
+    // 5. Delete time_logs
+    const qTime = query(collection(db, 'time_logs'), where('project_id', '==', projectId));
+    const snapTime = await getDocs(qTime);
+    const deleteTime = snapTime.docs.map(d => deleteDoc(d.ref));
+
+    // 6. Delete samples
+    const qSamples = query(collection(db, 'samples'), where('project_id', '==', projectId));
+    const snapSamples = await getDocs(qSamples);
+    const deleteSamples = snapSamples.docs.map(d => deleteDoc(d.ref));
+
+    // 7. Delete the project document
+    const deleteProj = deleteDoc(doc(db, 'projects', projectId));
+
+    await Promise.all([
+      deleteProj,
+      ...deleteCarpets,
+      ...deleteActProj,
+      ...deleteActCarpets,
+      ...deleteTime,
+      ...deleteSamples
+    ]);
   }
 
   async getProjectByIdAsync(projectId: string): Promise<Project | null> {

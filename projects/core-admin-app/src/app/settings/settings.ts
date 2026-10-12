@@ -290,17 +290,27 @@ import { firstValueFrom, Subscription } from 'rxjs';
             <mat-card-header>
               <mat-icon mat-card-avatar color="warn">warning</mat-icon>
               <mat-card-title>Danger Zone</mat-card-title>
-              <mat-card-subtitle>Destructive actions for the database</mat-card-subtitle>
+              <mat-card-subtitle>Destructive and maintenance actions for the database</mat-card-subtitle>
             </mat-card-header>
             
             <mat-card-content>
               <p>
-                Clicking the button below will permanently delete all projects and carpets from the Firestore Database.
-                This action cannot be undone. Use this only for testing purposes to reset the system to a clean state.
+                <strong>Clean Orphan Logs:</strong> Scans the database and permanently deletes any activity logs left over from projects or carpets that were previously deleted.
+              </p>
+              <p>
+                <strong>Clear All Data:</strong> Permanently deletes all projects, carpets, activity logs, time logs, and samples from Firestore.
               </p>
             </mat-card-content>
             
-            <mat-card-actions>
+            <mat-card-actions style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button mat-flat-button color="accent" (click)="cleanOrphanLogs()">
+                <mat-icon>cleaning_services</mat-icon>
+                PURGE ORPHAN LOGS
+              </button>
+              <button mat-stroked-button color="warn" (click)="clearActivityLogs()">
+                <mat-icon>history_toggle_off</mat-icon>
+                CLEAR ALL ACTIVITY LOGS
+              </button>
               <button mat-raised-button color="warn" (click)="clearDatabase()">
                 <mat-icon>delete_forever</mat-icon>
                 CLEAR ALL DATA
@@ -509,6 +519,27 @@ export class Settings {
         await this.userService.deleteUser(user.id);
       } catch (e) {
         alert('Failed to delete user.');
+      }
+    }
+  }
+
+  async cleanOrphanLogs() {
+    try {
+      const count = await this.ps.cleanOrphanLogs();
+      alert(`Cleaned up ${count} orphan activity logs!`);
+    } catch(e: any) {
+      alert('Error cleaning orphan logs: ' + (e?.message || e));
+    }
+  }
+
+  async clearActivityLogs() {
+    const confirm = window.confirm('Are you sure you want to clear ALL activity logs across the entire system?');
+    if (confirm) {
+      try {
+        const count = await this.ps.clearAllActivityLogs();
+        alert(`Cleared all ${count} activity logs successfully!`);
+      } catch(e: any) {
+        alert('Error clearing activity logs: ' + (e?.message || e));
       }
     }
   }

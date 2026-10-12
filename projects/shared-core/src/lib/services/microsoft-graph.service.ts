@@ -14,24 +14,33 @@ export class MicrosoftGraphService {
     
 
   private async getToken(scopes: string[] = ['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All']): Promise<string> {
-    let account = this.msalService.instance.getAllAccounts()[0];
+    let account = this.msalService.instance.getActiveAccount() || this.msalService.instance.getAllAccounts()[0];
     
+    if (account && !this.msalService.instance.getActiveAccount()) {
+      this.msalService.instance.setActiveAccount(account);
+    }
+
     if (!account) {
       console.warn('No user logged in to MSAL. Initiating login popup...');
       try {
-        await this.msalService.instance.loginPopup({
+        const loginRes = await this.msalService.instance.loginPopup({
           scopes: scopes, redirectUri: window.location.origin + '/auth.html'
         });
-        account = this.msalService.instance.getAllAccounts()[0];
-        if (!account) throw new Error('Still no account after loginPopup');
-      } catch (e) {
-         throw new Error('User cancelled Microsoft login or login failed');
+        account = loginRes.account || this.msalService.instance.getAllAccounts()[0];
+        if (account) {
+          this.msalService.instance.setActiveAccount(account);
+        } else {
+          throw new Error('Still no account after loginPopup');
+        }
+      } catch (e: any) {
+         throw new Error(e?.message || 'Microsoft account is not connected. Please connect your Microsoft Account in Settings.');
       }
     }
     
     const request = {
       account: account,
-      scopes: scopes, redirectUri: window.location.origin + '/auth.html'
+      scopes: scopes,
+      redirectUri: window.location.origin + '/auth.html'
     };
 
     try {
@@ -42,9 +51,9 @@ export class MicrosoftGraphService {
       try {
         const response = await this.msalService.instance.acquireTokenPopup(request);
         return response.accessToken;
-      } catch (popupErr) {
+      } catch (popupErr: any) {
         console.error('Failed to acquire token via popup:', popupErr);
-        throw popupErr;
+        throw new Error(popupErr?.message || 'Failed to authenticate with Microsoft. Please reconnect in Settings.');
       }
     }
   }
@@ -53,21 +62,30 @@ export class MicrosoftGraphService {
    * Sends an email silently from the logged-in user's Outlook/Exchange account.
    */
   sendEmail(toAddresses: string[], subject: string, bodyContent: string, isHtml: boolean = true): Observable<any> {
+    const cleanRecipients = toAddresses
+      .flatMap(addr => (addr || '').split(/[,;]/))
+      .map(addr => addr.trim())
+      .filter(addr => addr.length > 0 && addr.includes('@'));
+
+    if (cleanRecipients.length === 0) {
+      throw new Error('No valid recipient email address provided. Please enter a valid recipient email (e.g. Supply Chain email).');
+    }
+
     const email = {
       message: {
-        subject: subject,
+        subject: subject || 'No Subject',
         body: {
           contentType: isHtml ? 'HTML' : 'Text',
-          content: bodyContent
+          content: bodyContent || ''
         },
-        toRecipients: toAddresses.map(addr => ({
+        toRecipients: cleanRecipients.map(addr => ({
           emailAddress: { address: addr }
         }))
       },
       saveToSentItems: true
     };
 
-    return from(this.getToken(['User.Read', 'Mail.Send', 'Files.ReadWrite.All'])).pipe(
+    return from(this.getToken(['User.Read', 'Mail.Send', 'Files.ReadWrite.All', 'Sites.ReadWrite.All'])).pipe(
       switchMap(token => {
         const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
         return this.http.post(`${this.graphUrl}/me/sendMail`, email, { headers });

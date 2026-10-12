@@ -192,13 +192,7 @@ export class MyTasks implements OnInit, OnDestroy {
     this.activityLogs = [];
     
     this.activityLogService.getLogsForCarpet(task.id).subscribe(logs => {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 30);
-      const filtered = logs.filter(l => {
-        const d = l.timestamp.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
-        return d >= cutoff;
-      });
-      this.activityLogs = filtered.sort((a, b) => {
+      this.activityLogs = logs.sort((a, b) => {
         const dA = a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
         const dB = b.timestamp.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
         return dB.getTime() - dA.getTime();
@@ -385,14 +379,37 @@ submitTask(task: any) {
     this.dialog.open(this.uploadSubmitDialog, { width: '950px', maxWidth: '95vw', disableClose: true });
   }
 
+  isSubmittingArtwork = false;
+
   async confirmUploadSubmit() {
-    if (!this.pendingUploadTask) return;
+    if (!this.pendingUploadTask || this.isSubmittingArtwork) return;
     const tasksToSubmit = Array.isArray(this.pendingUploadTask) ? this.pendingUploadTask : [this.pendingUploadTask];
     
-    if (tasksToSubmit[0]['isSubmitting']) return;
-    tasksToSubmit.forEach((t: any) => t['isSubmitting'] = true);
+    const recipient = (this.emailTemplate?.to || '').trim();
+    if (!recipient) {
+      alert('Please provide a valid recipient email in the "To" field before submitting.');
+      return;
+    }
+
+    this.isSubmittingArtwork = true;
 
     try {
+      // 1. Attempt sending email via Microsoft Graph
+      const finalBodyHtml = this.emailBodyContent.replace(/\n/g, '<br>');
+      const { firstValueFrom } = await import('rxjs');
+      
+      let emailSent = false;
+      try {
+        await firstValueFrom(this.graphService.sendEmail([recipient], this.emailTemplate.subject, finalBodyHtml, true));
+        emailSent = true;
+      } catch (mailErr: any) {
+        console.error('Failed to send email via Microsoft Graph:', mailErr);
+        const fallbackMailto = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(this.emailTemplate.subject)}&body=${encodeURIComponent(this.emailBodyContent)}`;
+        window.open(fallbackMailto, '_blank');
+        alert('Notice: Could not send email automatically via Microsoft Graph (' + (mailErr.message || 'Check Microsoft connection in Settings') + '). A draft has been opened in your default email client.');
+      }
+
+      // 2. Update carpet status and record activity logs
       for (const task of tasksToSubmit) {
         let newTotal = task.time_spent_seconds || 0;
         if (task.is_working && task.start_time) {
@@ -419,21 +436,22 @@ submitTask(task: any) {
           project_id: task.project_fk,
           user_name: this.currentDesigner!.name,
           action: 'Submitted for Review',
-          comment: 'Artwork submitted for review.',
+          comment: emailSent ? 'Artwork submitted for review with automated email sent.' : 'Artwork submitted for review (email draft opened).',
           timestamp: new Date()
         });
       }
 
-      const finalBodyHtml = this.emailBodyContent.replace(/\n/g, '<br>');
-      const { firstValueFrom } = await import('rxjs');
-      await firstValueFrom(this.graphService.sendEmail([this.emailTemplate.to], this.emailTemplate.subject, finalBodyHtml, true));
+      if (emailSent) {
+        alert('Artwork submitted successfully and notification email sent to Supply Chain!');
+      }
 
       this.dialog.closeAll();
       this.pendingUploadTask = null;
-    } catch(e) {
-      console.error(e);
+    } catch(e: any) {
+      console.error('Submission error:', e);
+      alert('Submission error: ' + (e?.message || e));
     } finally {
-      tasksToSubmit.forEach((t: any) => t['isSubmitting'] = false);
+      this.isSubmittingArtwork = false;
     }
   }
 }

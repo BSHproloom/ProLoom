@@ -150,4 +150,27 @@ export class CarpetService {
     }
     return null;
   }
+
+  /**
+   * Delete a carpet and all associated logs
+   */
+  async deleteCarpet(carpetId: string): Promise<void> {
+    const { doc, deleteDoc, query, collection, where, getDocs } = await import('firebase/firestore');
+    
+    // Delete carpet doc
+    await deleteDoc(doc(db, 'carpets', carpetId));
+
+    // Delete associated activity_logs
+    const qAct = query(collection(db, 'activity_logs'), where('carpet_id', '==', carpetId));
+    const snapAct = await getDocs(qAct);
+    const deleteAct = snapAct.docs.map(d => deleteDoc(d.ref));
+
+    // Delete associated time_logs
+    const qTime = query(collection(db, 'time_logs'), where('carpet_id', '==', carpetId));
+    const snapTime = await getDocs(qTime);
+    const deleteTime = snapTime.docs.map(d => deleteDoc(d.ref));
+
+    await Promise.all([...deleteAct, ...deleteTime]);
+  }
 }
+

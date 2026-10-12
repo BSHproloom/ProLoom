@@ -195,9 +195,9 @@
   </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-flat-button color="primary" [disabled]="pendingUploadTask?.isSubmitting" (click)="confirmUploadSubmit()">
-      <mat-icon *ngIf="!pendingUploadTask?.isSubmitting">send</mat-icon>
-      <mat-spinner *ngIf="pendingUploadTask?.isSubmitting" diameter="20" style="margin-right: 8px; display: inline-block; vertical-align: middle;"></mat-spinner>
+    <button mat-flat-button color="primary" [disabled]="isSubmittingArtwork" (click)="confirmUploadSubmit()">
+      <mat-icon *ngIf="!isSubmittingArtwork">send</mat-icon>
+      <mat-spinner *ngIf="isSubmittingArtwork" diameter="20" style="margin-right: 8px; display: inline-block; vertical-align: middle;"></mat-spinner>
       Send & Submit
     </button>
   </mat-dialog-actions>

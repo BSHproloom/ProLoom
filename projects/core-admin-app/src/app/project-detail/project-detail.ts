@@ -318,12 +318,7 @@ export class ProjectDetail implements OnInit {
     });
 
     this.activityLogService.getLogsForProject(this.projectId).subscribe(logs => {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 30);
-      this.logs = logs.filter(l => {
-        const d = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
-        return d >= cutoff;
-      });
+      this.logs = logs;
     });
   }
 
@@ -964,7 +959,8 @@ export class ProjectDetail implements OnInit {
       dialogRef.afterClosed().subscribe(async (result) => {
         if (result) {
           try {
-            await this.graphService.sendEmail([result.to], result.subject, result.body);
+            const { firstValueFrom } = await import('rxjs');
+            await firstValueFrom(this.graphService.sendEmail([result.to], result.subject, result.body));
             alert('Email sent via Microsoft Graph');
           } catch(e) {
             console.error(e);
